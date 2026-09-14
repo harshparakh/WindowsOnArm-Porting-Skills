@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "f80c84078eaa4ef1245405a20dcac81b37278947",
+  "device": {
+    "osBuild": "26688",
+    "architecture": "arm64",
+    "processor": "Snapdragon X1E80100"
+  },
+  "tests": {
+    "passed": 462,
+    "failed": 0
+  },
+  "packages": {
+    "arm64": {
+      "file": "Flow-Launcher-hackathon-f80c840-win-arm64-Portable.zip",
+      "size": 178924954,
+      "sha256": "515e747cdf6a2acf37da0d6ec9a925dde3e1ad13992e4c4fd6580f9957b055fc",
+      "plugins": 12,
+      "architectureMismatches": 0
+    },
+    "x64": {
+      "file": "Flow-Launcher-hackathon-f80c840-win-x64-Portable.zip",
+      "size": 184455241,
+      "sha256": "41fa2b82b8e5d8626bc151cc65a68872ea51ad428fe86e038b3e100a767eb796",
+      "plugins": 12,
+      "architectureMismatches": 0
+    }
+  },
+  "deviceValidation": {
+    "scenarioCount": 11,
+    "settingsPassed": true,
+    "globalActivationPassed": true,
+    "requiredArm64Modules": [
+      "Flow.Launcher.exe",
+      "coreclr.dll",
+      "PresentationFramework.dll",
+      "e_sqlite3.dll",
+      "libSkiaSharp.dll"
+    ],
+    "loadErrors": 0
+  },
+  "sameCommitMedianReductionPercent": {
+    "processColdLaunch": 51.07,
+    "warmActivation": 53.23,
+    "settingsOpen": 43.77,
+    "processCpu": 53.54,
+    "workingSet": 13.68,
+    "programQuery": 59.95,
+    "windowsSearchQuery": 42.51,
+    "browserBookmarkQuery": 21.88
+  },
+  "limitations": [
+    "Process-cold is not reboot-cold.",
+    "No battery-life claim.",
+    "Kernel WPR traces require elevation.",
+    "MSIX installation requires machine certificate trust."
+  ]
+}

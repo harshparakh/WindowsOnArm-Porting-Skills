@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "application": {
+    "executablePath": "C:\\app\\Flow.Launcher.exe",
+    "workingDirectory": "C:\\app",
+    "activationExecutablePath": "C:\\app\\Flow.Launcher.exe",
+    "windowTitle": "Flow.Launcher",
+    "settingsWindowTitle": "Settings",
+    "queryAutomationId": "QueryTextBox",
+    "resultListAutomationId": "ResultListBox",
+    "profilePath": "C:\\app\\UserData",
+    "profileTemplatePath": "C:\\evidence\\profile-template",
+    "logsRelativePath": "Logs",
+    "winAppPath": "C:\\tools\\winapp.cmd"
+  },
+  "timeouts": {
+    "launchMilliseconds": 35000,
+    "queryMilliseconds": 12000,
+    "readyDelayMilliseconds": 12000
+  },
+  "shortcuts": {
+    "hide": "{ESC}",
+    "settings": "^i",
+    "settingsWinApp": "ctrl+i",
+    "hideWinApp": "esc"
+  },
+  "scenarios": [
+    {
+      "id": "calculator",
+      "category": "Calculator",
+      "query": "12345*67",
+      "matchMode": "regex",
+      "expectedPattern": "^827115Copy this number to the clipboard\\d+$"
+    }
+  ]
+}

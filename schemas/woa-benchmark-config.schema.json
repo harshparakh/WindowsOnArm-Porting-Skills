@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-plugins.org/windows-on-arm-porting/woa-benchmark-config.schema.json",
+  "title": "Windows on Arm UI Benchmark Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "application",
+    "timeouts",
+    "shortcuts",
+    "scenarios"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "application": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executablePath",
+        "workingDirectory",
+        "activationExecutablePath",
+        "windowTitle",
+        "settingsWindowTitle",
+        "queryAutomationId",
+        "resultListAutomationId",
+        "profilePath",
+        "profileTemplatePath"
+      ],
+      "properties": {
+        "executablePath": {
+          "type": "string"
+        },
+        "workingDirectory": {
+          "type": "string"
+        },
+        "activationExecutablePath": {
+          "type": "string"
+        },
+        "windowTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "settingsWindowTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "queryAutomationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "resultListAutomationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "profilePath": {
+          "type": "string"
+        },
+        "profileTemplatePath": {
+          "type": "string"
+        },
+        "logsRelativePath": {
+          "type": "string"
+        },
+        "winAppPath": {
+          "type": "string"
+        }
+      }
+    },
+    "timeouts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "launchMilliseconds",
+        "queryMilliseconds",
+        "readyDelayMilliseconds"
+      ],
+      "properties": {
+        "launchMilliseconds": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 300000
+        },
+        "queryMilliseconds": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 300000
+        },
+        "readyDelayMilliseconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 300000
+        }
+      }
+    },
+    "shortcuts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hide",
+        "settings"
+      ],
+      "properties": {
+        "hide": {
+          "type": "string"
+        },
+        "settings": {
+          "type": "string"
+        },
+        "hideWinApp": {
+          "type": "string"
+        },
+        "settingsWinApp": {
+          "type": "string"
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "category",
+          "query"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "expected": {
+            "type": "string"
+          },
+          "expectedMode": {
+            "enum": [
+              "process_name_pid"
+            ]
+          },
+          "matchMode": {
+            "enum": [
+              "contains",
+              "startsWith",
+              "regex",
+              "allContains"
+            ]
+          },
+          "expectedPattern": {
+            "type": "string"
+          },
+          "expectedTokens": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "setupProcess": {
+            "type": "string"
+          },
+          "setupArguments": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

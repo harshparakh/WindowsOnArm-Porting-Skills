@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-plugins.org/windows-on-arm-porting/woa-scout.schema.json",
+  "title": "Windows on Arm Scout Assessment",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "repository",
+    "release",
+    "architecture",
+    "buildSystems",
+    "packaging",
+    "risks",
+    "scores",
+    "oneWeekFeasible",
+    "recommendation"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "object",
+      "required": [
+        "fullName",
+        "defaultBranch",
+        "analyzedCommit",
+        "workingTreeDirty",
+        "stars"
+      ]
+    },
+    "release": {
+      "type": "object"
+    },
+    "architecture": {
+      "type": "object",
+      "required": [
+        "latestReleaseHasArm64Asset",
+        "latestReleaseHasWindowsAsset",
+        "releaseAssetGap",
+        "x64ReferenceCount",
+        "arm64ReferenceCount"
+      ]
+    },
+    "buildSystems": {
+      "type": "array"
+    },
+    "packaging": {
+      "type": "array"
+    },
+    "risks": {
+      "type": "array"
+    },
+    "scores": {
+      "type": "object",
+      "required": [
+        "customerImpact",
+        "technicalRisk",
+        "oneWeekFeasibility"
+      ]
+    },
+    "oneWeekFeasible": {
+      "type": "boolean"
+    },
+    "recommendation": {
+      "type": "string"
+    }
+  }
+}

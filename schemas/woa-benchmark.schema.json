@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-plugins.org/windows-on-arm-porting/woa-benchmark.schema.json",
+  "title": "Windows on Arm UI Benchmark Results",
+  "type": "object",
+  "required": [
+    "SchemaVersion",
+    "Architecture",
+    "Trials",
+    "TrialResults",
+    "QueryResults",
+    "Summaries"
+  ],
+  "properties": {
+    "SchemaVersion": {
+      "const": 1
+    },
+    "Architecture": {
+      "type": "string"
+    },
+    "Trials": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "TrialResults": {
+      "type": "array"
+    },
+    "QueryResults": {
+      "type": "array"
+    },
+    "Summaries": {
+      "type": "array"
+    }
+  }
+}

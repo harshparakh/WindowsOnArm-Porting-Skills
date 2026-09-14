@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-14T20:24:35.401593+00:00",
+  "sourceMode": "github",
+  "repository": {
+    "owner": "sabrogden",
+    "name": "Ditto",
+    "fullName": "sabrogden/Ditto",
+    "url": "https://github.com/sabrogden/Ditto",
+    "defaultBranch": "master",
+    "analyzedCommit": "d36f864f9e6bc3558e11e3f1c9f5f522b8079702",
+    "workingTreeDirty": false,
+    "workingTreeStatus": [],
+    "pushedAt": "2026-07-07T03:33:19Z",
+    "license": "GPL-3.0",
+    "primaryLanguage": "C",
+    "stars": 7144,
+    "forks": 446,
+    "openIssues": 773
+  },
+  "release": {
+    "latest": {
+      "tag": "3.25.113.0",
+      "publishedAt": "2025-09-27T01:31:27Z",
+      "url": "https://github.com/sabrogden/Ditto/releases/tag/3.25.113.0",
+      "assets": [
+        {
+          "name": "DittoDebug_3_25_113_0.7z",
+          "size": 11846453,
+          "downloads": 1813,
+          "url": "https://github.com/sabrogden/Ditto/releases/download/3.25.113.0/DittoDebug_3_25_113_0.7z"
+        },
+        {
+          "name": "DittoPortable_3_25_113_0.zip",
+          "size": 5116571,
+          "downloads": 107422,
+          "url": "https://github.com/sabrogden/Ditto/releases/download/3.25.113.0/DittoPortable_3_25_113_0.zip"
+        },
+        {
+          "name": "DittoSetup_3_25_113_0.exe",
+          "size": 5773896,
+          "downloads": 278514,
+          "url": "https://github.com/sabrogden/Ditto/releases/download/3.25.113.0/DittoSetup_3_25_113_0.exe"
+        }
+      ]
+    },
+    "totalAssetDownloads": 387749,
+    "arm64Assets": [],
+    "x64Assets": [],
+    "windowsAssets": [
+      "DittoDebug_3_25_113_0.7z",
+      "DittoPortable_3_25_113_0.zip",
+      "DittoSetup_3_25_113_0.exe"
+    ]
+  },
+  "architecture": {
+    "latestReleaseHasArm64Asset": false,
+    "latestReleaseHasX64Asset": false,
+    "latestReleaseHasWindowsAsset": true,
+    "releaseAssetGap": true,
+    "x64ReferenceCount": 293,
+    "arm64ReferenceCount": 220,
+    "committedBinaryCount": 3,
+    "committedBinaryExamples": [
+      "DittoSetup/ProjectZip.exe",
+      "DittoSetup/rcedit-x64.exe",
+      "DittoSetup/rcedit-x86.exe"
+    ],
+    "nativeLanguageDetected": true
+  },
+  "buildSystems": [
+    {
+      "name": "dotnet",
+      "evidence": [
+        "Addins/DittoUtil/DittoUtil.sln",
+        "CP_Main_10.sln"
+      ]
+    },
+    {
+      "name": "native-msbuild",
+      "evidence": [
+        "Addins/DittoUtil/DittoUtil.vcxproj",
+        "CP_Main.vcxproj",
+        "EncryptDecrypt/EncryptDecrypt.vcxproj",
+        "FocusHighlight/FocusHighlight.vcxproj",
+        "ICU_Loader/ICU_Loader.vcxproj",
+        "U3Stop/U3Stop.vcxproj",
+        "focusdll/focus.vcxproj"
+      ]
+    },
+    {
+      "name": "node",
+      "evidence": [
+        "DittoSetup/GitHubRelease/package.json"
+      ]
+    }
+  ],
+  "packaging": [
+    {
+      "name": "inno-setup"
+    },
+    {
+      "name": "github-actions"
+    }
+  ],
+  "dependencies": [
+    "axios",
+    "fs",
+    "version"
+  ],
+  "pluginSurfaceDetected": false,
+  "testsDetected": false,
+  "armIssues": [
+    {
+      "number": 654,
+      "title": "Can Windows arm64 be supported",
+      "state": "open",
+      "updatedAt": "2026-01-01T02:21:41Z",
+      "url": "https://github.com/sabrogden/Ditto/issues/654"
+    },
+    {
+      "number": 895,
+      "title": "Can't install Ditto X64 version on Windows Arm PC",
+      "state": "open",
+      "updatedAt": "2025-07-28T09:15:03Z",
+      "url": "https://github.com/sabrogden/Ditto/issues/895"
+    },
+    {
+      "number": 741,
+      "title": "Ditto is the best thing since sliced bread, just had to say it",
+      "state": "open",
+      "updatedAt": "2025-12-28T17:36:39Z",
+      "url": "https://github.com/sabrogden/Ditto/issues/741"
+    },
+    {
+      "number": 950,
+      "title": "Winget install fails on Win11 ARM",
+      "state": "open",
+      "updatedAt": "2025-12-30T22:50:10Z",
+      "url": "https://github.com/sabrogden/Ditto/issues/950"
+    },
+    {
+      "number": 887,
+      "title": "x64 installer cannt be installed on WoS device",
+      "state": "open",
+      "updatedAt": "2025-07-28T09:07:38Z",
+      "url": "https://github.com/sabrogden/Ditto/issues/887"
+    },
+    {
+      "number": 708,
+      "title": "Likely major security flaw?",
+      "state": "closed",
+      "updatedAt": "2024-10-03T12:20:23Z",
+      "url": "https://github.com/sabrogden/Ditto/issues/708"
+    },
+    {
+      "number": 362,
+      "title": "Windows On ARM\uff08ARM64\uff09 Support",
+      "state": "closed",
+      "updatedAt": "2022-12-18T13:45:10Z",
+      "url": "https://github.com/sabrogden/Ditto/issues/362"
+    }
+  ],
+  "armPullRequests": [
+    {
+      "number": 961,
+      "title": "Installer support running on 64bit and arm64",
+      "state": "closed",
+      "updatedAt": "2025-09-22T02:08:57Z",
+      "url": "https://github.com/sabrogden/Ditto/pull/961"
+    },
+    {
+      "number": 376,
+      "title": "feat: Config changes for target ARM64",
+      "state": "closed",
+      "updatedAt": "2022-12-18T02:13:08Z",
+      "url": "https://github.com/sabrogden/Ditto/pull/376"
+    }
+  ],
+  "risks": [
+    {
+      "id": "native-code",
+      "severity": "high",
+      "evidence": "Repository contains native C, C++, Rust, or VCXPROJ build surfaces."
+    },
+    {
+      "id": "committed-binaries",
+      "severity": "high",
+      "evidence": "3 committed EXE, DLL, LIB, or Node addon paths require architecture verification."
+    },
+    {
+      "id": "x64-assumptions",
+      "severity": "high",
+      "evidence": "Detected 293 x64 references versus 220 Arm references."
+    },
+    {
+      "id": "installer-updater",
+      "severity": "medium",
+      "evidence": "Installer or updater tooling has architecture-specific behavior."
+    },
+    {
+      "id": "release-gap",
+      "severity": "medium",
+      "evidence": "Latest stable release has x64 assets and no ARM64-labeled asset."
+    },
+    {
+      "id": "test-coverage",
+      "severity": "medium",
+      "evidence": "No obvious test directory or test project was detected."
+    }
+  ],
+  "scores": {
+    "customerImpact": 10,
+    "technicalRisk": 10,
+    "oneWeekFeasibility": 1
+  },
+  "oneWeekFeasible": false,
+  "recommendation": "High-risk one-week port; constrain scope to architecture proof and one core scenario.",
+  "committedOutcome": [
+    "Architecture-isolated x64 and ARM64 builds",
+    "ARM64 portable artifact",
+    "PE architecture inventory",
+    "Physical-device core scenario validation",
+    "Before-and-after evidence"
+  ],
+  "fallback": [
+    "Use an operating-system service instead of an unavailable x64-only optional dependency.",
+    "Defer installer or updater integration before reducing native core quality.",
+    "Report incompatible optional plugins instead of loading them in-process."
+  ],
+  "warnings": []
+}

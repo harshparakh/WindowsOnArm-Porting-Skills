@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-plugins.org/windows-on-arm-porting/woa-architecture-report.schema.json",
+  "title": "Windows on Arm PE Architecture Report",
+  "type": "object",
+  "required": [
+    "SchemaVersion",
+    "RootPath",
+    "ExpectedArchitecture",
+    "FileCount",
+    "InvalidCount",
+    "Files"
+  ],
+  "properties": {
+    "SchemaVersion": {
+      "const": 1
+    },
+    "RootPath": {
+      "type": "string"
+    },
+    "ExpectedArchitecture": {
+      "enum": [
+        "x64",
+        "arm64"
+      ]
+    },
+    "FileCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "InvalidCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ValidationErrors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "Files": {
+      "type": "array"
+    }
+  }
+}
