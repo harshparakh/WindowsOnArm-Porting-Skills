@@ -82,6 +82,20 @@ pwsh -File .\scripts\Compare-WoaBenchmarks.ps1 `
   -CandidateLabel "ARM64 native"
 ```
 
+Elevated Windows Performance Recorder capture:
+
+```powershell
+pwsh -File .\scripts\Capture-WoaWpr.ps1 `
+  -ApplicationPath C:\artifacts\application\Flow.Launcher.exe `
+  -WorkingDirectory C:\artifacts\application `
+  -ApplicationRoot C:\artifacts\application `
+  -EvidenceRoot C:\evidence `
+  -ProfileTemplatePath C:\evidence\profile-template `
+  -ProfilePath C:\artifacts\application\UserData `
+  -ScenarioPath C:\evidence\trace-queries.json `
+  -TracePath C:\evidence\flow-arm64.etl
+```
+
 ## Evidence policy
 
 - Keep raw samples, logs, traces, screenshots, and package inventories.

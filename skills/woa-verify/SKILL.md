@@ -49,6 +49,8 @@ The configuration file must be generated under the trusted evidence root and val
 
 Capture the same Windows Performance Recorder profile for baseline and candidate. Record the exact profile and commands. Kernel and stack profiles normally require elevation; do not claim trace findings when capture was blocked.
 
+Use `scripts\Capture-WoaWpr.ps1` from an elevated PowerShell process. Pass trusted, disjoint application and evidence roots plus a scenario JSON file under the evidence root. Capture baseline and candidate with the same profile and queries.
+
 ## Completion gate
 
 Do not claim completion until:
