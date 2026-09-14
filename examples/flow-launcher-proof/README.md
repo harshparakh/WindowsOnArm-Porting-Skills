@@ -1,6 +1,6 @@
 # Flow Launcher ARM64 Proof
 
-**Source commit:** `f80c84078eaa4ef1245405a20dcac81b37278947`
+**Source commit:** `ccba7e62e351eea6538a0b57aaec3f76c209083c`
 **Device:** Windows 11 build 26688 on Snapdragon X1E80100 ARM64
 **Sample count:** 20 trials per architecture
 **Benchmark method:** Same device, profile template, query corpus, Windows Search scope, power mode, and UI Automation harness. Screen recording was disabled during timed runs.
@@ -9,11 +9,11 @@
 
 | Output | Result |
 |---|---|
-| ARM64 portable ZIP | 12 bundled plugins, 178,924,954 bytes, SHA-256 `515e747cdf6a2acf37da0d6ec9a925dde3e1ad13992e4c4fd6580f9957b055fc` |
-| x64 portable ZIP | 12 bundled plugins, 184,455,241 bytes, SHA-256 `41fa2b82b8e5d8626bc151cc65a68872ea51ad428fe86e038b3e100a767eb796` |
-| ARM64 PE inventory | 472 files, 0 mismatches: 299 AnyCPU, 150 managed ARM64, 23 native ARM64 |
-| x64 PE inventory | 475 files, 0 mismatches: 299 AnyCPU, 150 managed x64, 26 native x64 |
-| Existing tests | 462 passed, 0 failed |
+| ARM64 portable ZIP | 12 bundled plugins, 178,924,819 bytes, SHA-256 `5f0a8d31c2204aef848014aea9681891e110be7051c6936934c1c77a75212e1a` |
+| x64 portable ZIP | 12 bundled plugins, 184,455,079 bytes, SHA-256 `b071b2ad4cef09eeec6751e9ded57a1d22038f32c7e168402038d9f08748cc90` |
+| ARM64 PE inventory | 472 files, 0 mismatches: 296 AnyCPU, 153 managed ARM64, 23 native ARM64 |
+| x64 PE inventory | 475 files, 0 mismatches: 296 AnyCPU, 153 managed x64, 26 native x64 |
+| Existing tests | 463 passed, 0 failed |
 | Native UI scenarios | 11 bundled-plugin scenarios, Settings, and global activation passed |
 | Required native modules | ARM64 `Flow.Launcher.exe`, `coreclr.dll`, `PresentationFramework.dll`, `e_sqlite3.dll`, and `libSkiaSharp.dll` loaded |
 
@@ -21,14 +21,14 @@
 
 | Metric | x64 emulated | ARM64 native | Reduction |
 |---|---:|---:|---:|
-| Process-cold launch | 4,920.09 ms | 2,407.23 ms | 51.07% |
-| Warm activation | 527.33 ms | 246.62 ms | 53.23% |
-| Settings open | 1,830.86 ms | 1,029.54 ms | 43.77% |
-| Process CPU | 17.23 s | 8.01 s | 53.54% |
-| Working set | 782.9 MiB | 675.8 MiB | 13.68% |
-| Program query | 780.53 ms | 312.60 ms | 59.95% |
-| Windows Search query | 265.04 ms | 152.38 ms | 42.51% |
-| BrowserBookmark query | 149.68 ms | 116.93 ms | 21.88% |
+| Process-cold launch | 4,200.66 ms | 2,167.12 ms | 48.41% |
+| Warm activation | 468.69 ms | 236.22 ms | 49.60% |
+| Settings open | 1,711.49 ms | 1,006.17 ms | 41.21% |
+| Process CPU | 14.59 s | 7.49 s | 48.66% |
+| Working set | 805.5 MiB | 707.5 MiB | 12.17% |
+| Program query | 692.69 ms | 303.92 ms | 56.13% |
+| Windows Search query | 239.39 ms | 137.59 ms | 42.52% |
+| BrowserBookmark query | 133.87 ms | 106.51 ms | 20.44% |
 
 Positive reduction means lower latency, memory, or CPU. These results demonstrate correlation under a controlled same-device test; they do not claim battery-life improvement.
 

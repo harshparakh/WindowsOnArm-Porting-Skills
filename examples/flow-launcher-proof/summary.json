@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "f80c84078eaa4ef1245405a20dcac81b37278947",
+  "sourceCommit": "ccba7e62e351eea6538a0b57aaec3f76c209083c",
   "device": {
     "osBuild": "26688",
     "architecture": "arm64",
     "processor": "Snapdragon X1E80100"
   },
   "tests": {
-    "passed": 462,
+    "passed": 463,
     "failed": 0
   },
   "packages": {
     "arm64": {
-      "file": "Flow-Launcher-hackathon-f80c840-win-arm64-Portable.zip",
-      "size": 178924954,
-      "sha256": "515e747cdf6a2acf37da0d6ec9a925dde3e1ad13992e4c4fd6580f9957b055fc",
+      "file": "Flow-Launcher-hackathon-ccba7e6-win-arm64-Portable.zip",
+      "size": 178924819,
+      "sha256": "5f0a8d31c2204aef848014aea9681891e110be7051c6936934c1c77a75212e1a",
       "plugins": 12,
       "architectureMismatches": 0
     },
     "x64": {
-      "file": "Flow-Launcher-hackathon-f80c840-win-x64-Portable.zip",
-      "size": 184455241,
-      "sha256": "41fa2b82b8e5d8626bc151cc65a68872ea51ad428fe86e038b3e100a767eb796",
+      "file": "Flow-Launcher-hackathon-ccba7e6-win-x64-Portable.zip",
+      "size": 184455079,
+      "sha256": "b071b2ad4cef09eeec6751e9ded57a1d22038f32c7e168402038d9f08748cc90",
       "plugins": 12,
       "architectureMismatches": 0
     }
@@ -40,14 +40,14 @@
     "loadErrors": 0
   },
   "sameCommitMedianReductionPercent": {
-    "processColdLaunch": 51.07,
-    "warmActivation": 53.23,
-    "settingsOpen": 43.77,
-    "processCpu": 53.54,
-    "workingSet": 13.68,
-    "programQuery": 59.95,
-    "windowsSearchQuery": 42.51,
-    "browserBookmarkQuery": 21.88
+    "processColdLaunch": 48.41,
+    "warmActivation": 49.6,
+    "settingsOpen": 41.21,
+    "processCpu": 48.66,
+    "workingSet": 12.17,
+    "programQuery": 56.13,
+    "windowsSearchQuery": 42.52,
+    "browserBookmarkQuery": 20.44
   },
   "limitations": [
     "Process-cold is not reboot-cold.",
