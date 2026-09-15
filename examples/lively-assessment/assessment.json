@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-15T21:35:30.682129+00:00",
+  "sourceMode": "github",
+  "repository": {
+    "owner": "rocksdanister",
+    "name": "lively",
+    "fullName": "rocksdanister/lively",
+    "url": "https://github.com/rocksdanister/lively",
+    "defaultBranch": "core-separation",
+    "analyzedCommit": "c1036feb664960722e34bf4309042c247d6a909d",
+    "workingTreeDirty": false,
+    "workingTreeStatus": [],
+    "pushedAt": "2026-04-30T04:59:40Z",
+    "license": "GPL-3.0",
+    "primaryLanguage": "C#",
+    "stars": 19619,
+    "forks": 1353,
+    "openIssues": 390
+  },
+  "release": {
+    "latest": {
+      "tag": "v2.2.1.0",
+      "publishedAt": "2025-09-18T18:01:15Z",
+      "url": "https://github.com/rocksdanister/lively/releases/tag/v2.2.1.0",
+      "assets": [
+        {
+          "name": "lively_command_utility.zip",
+          "size": 9824807,
+          "downloads": 16861,
+          "url": "https://github.com/rocksdanister/lively/releases/download/v2.2.1.0/lively_command_utility.zip"
+        },
+        {
+          "name": "lively_player_cefsharp.zip",
+          "size": 163790287,
+          "downloads": 12138,
+          "url": "https://github.com/rocksdanister/lively/releases/download/v2.2.1.0/lively_player_cefsharp.zip"
+        },
+        {
+          "name": "lively_setup_x86_full_v2210.exe",
+          "size": 218063717,
+          "downloads": 2197696,
+          "url": "https://github.com/rocksdanister/lively/releases/download/v2.2.1.0/lively_setup_x86_full_v2210.exe"
+        },
+        {
+          "name": "lively_utility_screensaver.zip",
+          "size": 4177,
+          "downloads": 7623,
+          "url": "https://github.com/rocksdanister/lively/releases/download/v2.2.1.0/lively_utility_screensaver.zip"
+        }
+      ]
+    },
+    "totalAssetDownloads": 2234318,
+    "arm64Assets": [],
+    "x64Assets": [],
+    "windowsAssets": [
+      "lively_command_utility.zip",
+      "lively_player_cefsharp.zip",
+      "lively_setup_x86_full_v2210.exe",
+      "lively_utility_screensaver.zip"
+    ]
+  },
+  "architecture": {
+    "latestReleaseHasArm64Asset": false,
+    "latestReleaseHasX64Asset": false,
+    "latestReleaseHasWindowsAsset": true,
+    "releaseAssetGap": true,
+    "x64ReferenceCount": 154,
+    "arm64ReferenceCount": 85,
+    "committedBinaryCount": 0,
+    "committedBinaryExamples": [],
+    "nativeLanguageDetected": false
+  },
+  "buildSystems": [
+    {
+      "name": "dotnet",
+      "evidence": [
+        "src/Lively/Lively.Common.Services/Lively.Common.Services.csproj",
+        "src/Lively/Lively.Common/Lively.Common.csproj",
+        "src/Lively/Lively.Gallery.Client/Lively.Gallery.Client.csproj",
+        "src/Lively/Lively.Grpc.Client/Lively.Grpc.Client.csproj",
+        "src/Lively/Lively.Grpc.Common/Lively.Grpc.Common.csproj",
+        "src/Lively/Lively.ML/Lively.ML.csproj",
+        "src/Lively/Lively.Models/Lively.Models.csproj",
+        "src/Lively/Lively.Player.CefSharp/Lively.Player.CefSharp.csproj",
+        "src/Lively/Lively.Player.Vlc/Lively.Player.Vlc.csproj",
+        "src/Lively/Lively.Player.WebView2/Lively.Player.WebView2.csproj"
+      ]
+    }
+  ],
+  "packaging": [
+    {
+      "name": "msix"
+    },
+    {
+      "name": "inno-setup"
+    }
+  ],
+  "dependencies": [
+    "CSharp.OperationResult",
+    "CefSharp.WinForms",
+    "CommandLineParser",
+    "CommunityToolkit.Mvvm",
+    "CommunityToolkit.WinUI.Animations",
+    "CommunityToolkit.WinUI.Behaviors",
+    "CommunityToolkit.WinUI.Collections",
+    "CommunityToolkit.WinUI.Controls.Primitives",
+    "CommunityToolkit.WinUI.Controls.Segmented",
+    "CommunityToolkit.WinUI.Controls.SettingsControls",
+    "CommunityToolkit.WinUI.Converters",
+    "CommunityToolkit.WinUI.Helpers",
+    "CommunityToolkit.WinUI.Media",
+    "Google.Protobuf",
+    "Grpc",
+    "Grpc.Core",
+    "Grpc.Core.Api",
+    "Grpc.Tools",
+    "GrpcDotNetNamedPipes",
+    "H.Hooks",
+    "LibVLCSharp.WinForms",
+    "Magick.NET-Q8-AnyCPU",
+    "MathNet.Numerics",
+    "Microsoft.Extensions.Http",
+    "Microsoft.Graphics.Win2D",
+    "Microsoft.ML.OnnxRuntime",
+    "Microsoft.Web.WebView2",
+    "Microsoft.Win32.Registry",
+    "Microsoft.Windows.SDK.BuildTools",
+    "Microsoft.WindowsAppSDK",
+    "Microsoft.Xaml.Behaviors.WinUI.Managed",
+    "NAudio",
+    "NLog",
+    "NPSMLib",
+    "Newtonsoft.Json",
+    "Octokit",
+    "RawInput.Sharp",
+    "Sentinel.NLogViewer",
+    "SharpZipLib",
+    "System.Buffers",
+    "System.Diagnostics.PerformanceCounter",
+    "System.Drawing.Common",
+    "System.Drawing.Primitives",
+    "System.Management",
+    "System.Memory",
+    "System.Runtime.CompilerServices.Unsafe",
+    "System.Security.Cryptography.ProtectedData",
+    "UACHelper",
+    "VideoLAN.LibVLC.Windows",
+    "Watson",
+    "WinEventHook",
+    "WinUIEx"
+  ],
+  "pluginSurfaceDetected": true,
+  "testsDetected": false,
+  "armIssues": [
+    {
+      "number": 1198,
+      "title": "Maybe we should also build X64 and ARM64 versions",
+      "state": "open",
+      "updatedAt": "2026-08-01T09:22:45Z",
+      "url": "https://github.com/rocksdanister/lively/issues/1198"
+    },
+    {
+      "number": 2514,
+      "title": "Windows Arm64 Native support",
+      "state": "closed",
+      "updatedAt": "2024-12-07T00:22:49Z",
+      "url": "https://github.com/rocksdanister/lively/issues/2514"
+    },
+    {
+      "number": 2513,
+      "title": "Lively Wallpaper not working on Windows Arm64",
+      "state": "closed",
+      "updatedAt": "2024-12-07T00:24:19Z",
+      "url": "https://github.com/rocksdanister/lively/issues/2513"
+    },
+    {
+      "number": 1088,
+      "title": "Lively Beta won't open in newest Dev build",
+      "state": "closed",
+      "updatedAt": "2022-06-07T09:37:32Z",
+      "url": "https://github.com/rocksdanister/lively/issues/1088"
+    }
+  ],
+  "armPullRequests": [
+    {
+      "number": 3251,
+      "title": "Remove unused Grpc.Core runtime",
+      "state": "closed",
+      "updatedAt": "2026-09-13T16:47:41Z",
+      "url": "https://github.com/rocksdanister/lively/pull/3251"
+    },
+    {
+      "number": 3226,
+      "title": "Use external taskbar utility for modern Windows 11",
+      "state": "closed",
+      "updatedAt": "2026-06-30T06:01:32Z",
+      "url": "https://github.com/rocksdanister/lively/pull/3226"
+    },
+    {
+      "number": 3213,
+      "title": "Use external taskbar utility for modern Windows 11",
+      "state": "closed",
+      "updatedAt": "2026-07-01T03:09:26Z",
+      "url": "https://github.com/rocksdanister/lively/pull/3213"
+    }
+  ],
+  "risks": [
+    {
+      "id": "x64-assumptions",
+      "severity": "high",
+      "evidence": "Detected 154 x64 references versus 85 Arm references."
+    },
+    {
+      "id": "installer-updater",
+      "severity": "medium",
+      "evidence": "Installer or updater tooling has architecture-specific behavior."
+    },
+    {
+      "id": "plugin-boundary",
+      "severity": "medium",
+      "evidence": "Plugin loading requires in-process and out-of-process architecture classification."
+    },
+    {
+      "id": "release-gap",
+      "severity": "medium",
+      "evidence": "Latest stable release has x64 assets and no ARM64-labeled asset."
+    },
+    {
+      "id": "test-coverage",
+      "severity": "medium",
+      "evidence": "No obvious test directory or test project was detected."
+    }
+  ],
+  "scores": {
+    "customerImpact": 10,
+    "technicalRisk": 7,
+    "portingReadiness": 5
+  },
+  "effortEstimate": {
+    "band": "substantial",
+    "minimumDays": 7,
+    "maximumDays": 28,
+    "rationale": "The port needs explicit subsystem, dependency, installer, or plugin fallbacks."
+  },
+  "deliveryWindow": {
+    "days": null,
+    "fit": "not-assessed",
+    "rationale": "No delivery window was supplied; readiness and effort are reported independently."
+  },
+  "recommendation": "Viable native ARM64 candidate with explicit subsystem, dependency, installer, or plugin fallbacks.",
+  "committedOutcome": [
+    "Architecture-isolated x64 and ARM64 builds",
+    "ARM64 portable artifact",
+    "PE architecture inventory",
+    "Physical-device core scenario validation",
+    "Before-and-after evidence"
+  ],
+  "fallback": [
+    "Use an operating-system service instead of an unavailable x64-only optional dependency.",
+    "Defer installer or updater integration before reducing native core quality.",
+    "Report incompatible optional plugins instead of loading them in-process."
+  ],
+  "warnings": []
+}

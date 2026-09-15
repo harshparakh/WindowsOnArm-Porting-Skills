@@ -1,10 +1,10 @@
-# Windows on Arm Assessment: ShareX/ShareX
+# Windows on Arm Assessment: rocksdanister/lively
 
-- Generated: 2026-09-15T21:18:23.521952+00:00
+- Generated: 2026-09-15T21:35:30.682129+00:00
 - Source mode: github
-- Default branch: `develop`
-- Stars: 39,584
-- Latest stable release: `v21.0.0`
+- Default branch: `core-separation`
+- Stars: 19,619
+- Latest stable release: `v2.2.1.0`
 
 ## Decision
 
@@ -25,25 +25,25 @@ Viable native ARM64 candidate with explicit subsystem, dependency, installer, or
 
 ## Architecture Gap
 
-- Latest release has x64 asset: True
+- Latest release has x64 asset: False
 - Latest release has Windows binary asset: True
 - Latest release has ARM64 asset: False
-- Source x64 references: 398
-- Source Arm references: 344
-- Committed native binary candidates: 1
+- Source x64 references: 154
+- Source Arm references: 85
+- Committed native binary candidates: 0
 
 ## Build and Packaging
 
 - Build systems: dotnet
-- Packaging: squirrel, inno-setup, github-actions
-- Plugin surface: False
+- Packaging: msix, inno-setup
+- Plugin surface: True
 - Tests detected: False
 
 ## Risks
 
-- **MEDIUM committed-binaries:** 1 committed EXE, DLL, LIB, or Node addon paths require architecture verification.
-- **HIGH x64-assumptions:** Detected 398 x64 references versus 344 Arm references.
+- **HIGH x64-assumptions:** Detected 154 x64 references versus 85 Arm references.
 - **MEDIUM installer-updater:** Installer or updater tooling has architecture-specific behavior.
+- **MEDIUM plugin-boundary:** Plugin loading requires in-process and out-of-process architecture classification.
 - **MEDIUM release-gap:** Latest stable release has x64 assets and no ARM64-labeled asset.
 - **MEDIUM test-coverage:** No obvious test directory or test project was detected.
 
