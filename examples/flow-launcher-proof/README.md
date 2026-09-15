@@ -1,6 +1,7 @@
 # Flow Launcher ARM64 Proof
 
-**Source commit:** `cd253079cb97afdab016f267a2f8c03d2a6a070b`
+**Package source commit:** `5656eb19cd5a9deef267f5befe4ddb6cd8bb1feb`
+**Benchmark source commit:** `cd253079cb97afdab016f267a2f8c03d2a6a070b`
 **Device:** Windows 11 build 26688 on Snapdragon X1E80100 ARM64
 **Sample count:** 20 trials per architecture
 **Benchmark method:** Same device, profile template, query corpus, Windows Search scope, power mode, and UI Automation harness. Screen recording was disabled during timed runs.
@@ -9,8 +10,8 @@
 
 | Output | Result |
 |---|---|
-| ARM64 portable ZIP | 12 bundled plugins, 179,013,452 bytes, SHA-256 `d5489f31bfe2c3ccd6f4292e4d5e71aea459e9462a2c24dff7ba38fdb4127714` |
-| x64 portable ZIP | 12 bundled plugins, 184,457,276 bytes, SHA-256 `9c9c452b16a9e8a074a0187c644deeb38db1427535144c0bcf17d76e0bc17020` |
+| ARM64 portable ZIP | 12 bundled plugins, 179,013,557 bytes, SHA-256 `77ec4f3499288fdf0ad371b2f3df12f4a66f205470c7a66b3abe30d467da7d0d` |
+| x64 portable ZIP | 12 bundled plugins, 184,457,346 bytes, SHA-256 `c642103fc279d1e9308b07dc923d8edbfcb1259c3bc16d6017caf729d9bfb329` |
 | ARM64 PE inventory | 474 files, 0 mismatches: 296 AnyCPU, 153 managed ARM64, 25 native ARM64 |
 | x64 PE inventory | 475 files, 0 mismatches: 296 AnyCPU, 153 managed x64, 26 native x64 |
 | Existing tests | 466 passed, 0 failed |
@@ -47,7 +48,7 @@ The ARM64 package includes voidtools-signed SDK2 and SDK3 wrappers. Their signat
 ## Upstream contribution
 
 - Pull request: [Flow-Launcher/Flow.Launcher#4659](https://github.com/Flow-Launcher/Flow.Launcher/pull/4659)
-- Current local proof commit: `cd253079cb97afdab016f267a2f8c03d2a6a070b`
+- Current package proof commit: `5656eb19cd5a9deef267f5befe4ddb6cd8bb1feb`
 
 ## Related examples
 

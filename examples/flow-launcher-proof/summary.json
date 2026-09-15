@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "cd253079cb97afdab016f267a2f8c03d2a6a070b",
+  "sourceCommit": "5656eb19cd5a9deef267f5befe4ddb6cd8bb1feb",
+  "benchmarkSourceCommit": "cd253079cb97afdab016f267a2f8c03d2a6a070b",
   "device": {
     "osBuild": "26688",
     "architecture": "arm64",
@@ -12,17 +13,17 @@
   },
   "packages": {
     "arm64": {
-      "file": "Flow-Launcher-pr-4659-cd25307-win-arm64-Portable.zip",
-      "size": 179013452,
-      "sha256": "d5489f31bfe2c3ccd6f4292e4d5e71aea459e9462a2c24dff7ba38fdb4127714",
+      "file": "Flow-Launcher-hackathon-5656eb1-win-arm64-Portable.zip",
+      "size": 179013557,
+      "sha256": "77ec4f3499288fdf0ad371b2f3df12f4a66f205470c7a66b3abe30d467da7d0d",
       "plugins": 12,
       "peFiles": 474,
       "architectureMismatches": 0
     },
     "x64": {
-      "file": "Flow-Launcher-pr-4659-cd25307-win-x64-Portable.zip",
-      "size": 184457276,
-      "sha256": "9c9c452b16a9e8a074a0187c644deeb38db1427535144c0bcf17d76e0bc17020",
+      "file": "Flow-Launcher-hackathon-5656eb1-win-x64-Portable.zip",
+      "size": 184457346,
+      "sha256": "c642103fc279d1e9308b07dc923d8edbfcb1259c3bc16d6017caf729d9bfb329",
       "plugins": 12,
       "peFiles": 475,
       "architectureMismatches": 0
