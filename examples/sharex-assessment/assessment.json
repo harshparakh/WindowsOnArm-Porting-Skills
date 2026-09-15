@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-15T21:18:23.521952+00:00",
+  "sourceMode": "github",
+  "repository": {
+    "owner": "ShareX",
+    "name": "ShareX",
+    "fullName": "ShareX/ShareX",
+    "url": "https://github.com/ShareX/ShareX",
+    "defaultBranch": "develop",
+    "analyzedCommit": "d85ed3ddbe245b871bcb4288f40e4285563a29a3",
+    "workingTreeDirty": false,
+    "workingTreeStatus": [],
+    "pushedAt": "2026-09-15T20:33:52Z",
+    "license": "GPL-3.0",
+    "primaryLanguage": "C#",
+    "stars": 39584,
+    "forks": 3916,
+    "openIssues": 640
+  },
+  "release": {
+    "latest": {
+      "tag": "v21.0.0",
+      "publishedAt": "2026-07-03T04:24:56Z",
+      "url": "https://github.com/ShareX/ShareX/releases/tag/v21.0.0",
+      "assets": [
+        {
+          "name": "ShareX-21.0.0-portable-x64.zip",
+          "size": 208850419,
+          "downloads": 73907,
+          "url": "https://github.com/ShareX/ShareX/releases/download/v21.0.0/ShareX-21.0.0-portable-x64.zip"
+        },
+        {
+          "name": "ShareX-21.0.0-setup-x64.exe",
+          "size": 139151207,
+          "downloads": 1073007,
+          "url": "https://github.com/ShareX/ShareX/releases/download/v21.0.0/ShareX-21.0.0-setup-x64.exe"
+        }
+      ]
+    },
+    "totalAssetDownloads": 1146914,
+    "arm64Assets": [],
+    "x64Assets": [
+      "ShareX-21.0.0-portable-x64.zip",
+      "ShareX-21.0.0-setup-x64.exe"
+    ],
+    "windowsAssets": [
+      "ShareX-21.0.0-portable-x64.zip",
+      "ShareX-21.0.0-setup-x64.exe"
+    ]
+  },
+  "architecture": {
+    "latestReleaseHasArm64Asset": false,
+    "latestReleaseHasX64Asset": true,
+    "latestReleaseHasWindowsAsset": true,
+    "releaseAssetGap": true,
+    "x64ReferenceCount": 398,
+    "arm64ReferenceCount": 344,
+    "committedBinaryCount": 1,
+    "committedBinaryExamples": [
+      "ShareX.Steam/steam_api.dll"
+    ],
+    "nativeLanguageDetected": false
+  },
+  "buildSystems": [
+    {
+      "name": "dotnet",
+      "evidence": [
+        "ShareX.Avalonia/ShareX.Avalonia.csproj",
+        "ShareX.HelpersLib/ShareX.HelpersLib.csproj",
+        "ShareX.HistoryLib/ShareX.HistoryLib.csproj",
+        "ShareX.ImageEditor.App/ShareX.ImageEditor.App.csproj",
+        "ShareX.ImageEditor.sln",
+        "ShareX.ImageEditor/ShareX.ImageEditor.csproj",
+        "ShareX.ImageEffectsLib/ShareX.ImageEffectsLib.csproj",
+        "ShareX.NativeMessagingHost/ShareX.NativeMessagingHost.csproj",
+        "ShareX.ScreenCaptureLib/ShareX.ScreenCaptureLib.csproj",
+        "ShareX.Setup/ShareX.Setup.csproj"
+      ]
+    }
+  ],
+  "packaging": [
+    {
+      "name": "squirrel"
+    },
+    {
+      "name": "inno-setup"
+    },
+    {
+      "name": "github-actions"
+    }
+  ],
+  "dependencies": [
+    "Avalonia",
+    "Avalonia.Controls.ColorPicker",
+    "Avalonia.Desktop",
+    "Avalonia.Fonts.Inter",
+    "Avalonia.Themes.Fluent",
+    "AvaloniaUI.DiagnosticsSupport",
+    "CommunityToolkit.Mvvm",
+    "FluentFTP",
+    "Microsoft.Data.Sqlite",
+    "Microsoft.Data.Sqlite.Core",
+    "Microsoft.ML.OnnxRuntime.DirectML",
+    "Newtonsoft.Json",
+    "SSH.NET",
+    "SkiaSharp",
+    "SkiaSharp.Views.WindowsForms",
+    "Vortice.DXGI",
+    "Vortice.Direct2D1",
+    "Vortice.Direct3D11",
+    "ZXing.Net",
+    "ZXing.Net.Bindings.Windows.Compatibility"
+  ],
+  "pluginSurfaceDetected": false,
+  "testsDetected": false,
+  "armIssues": [
+    {
+      "number": 6653,
+      "title": "Windows on ARM support",
+      "state": "closed",
+      "updatedAt": "2026-07-27T05:27:08Z",
+      "url": "https://github.com/ShareX/ShareX/issues/6653"
+    },
+    {
+      "number": 765,
+      "title": "Add WebP support",
+      "state": "closed",
+      "updatedAt": "2026-08-11T06:49:24Z",
+      "url": "https://github.com/ShareX/ShareX/issues/765"
+    },
+    {
+      "number": 4922,
+      "title": "Support for ARM devices?",
+      "state": "closed",
+      "updatedAt": "2022-11-10T02:06:49Z",
+      "url": "https://github.com/ShareX/ShareX/issues/4922"
+    },
+    {
+      "number": 5941,
+      "title": "Installing recorder devices on arm64",
+      "state": "closed",
+      "updatedAt": "2022-05-22T02:10:22Z",
+      "url": "https://github.com/ShareX/ShareX/issues/5941"
+    },
+    {
+      "number": 4923,
+      "title": "Publish MSIX/APPX on the GitHub Releases or anywhere else Microsoft Store",
+      "state": "closed",
+      "updatedAt": "2021-05-18T01:59:53Z",
+      "url": "https://github.com/ShareX/ShareX/issues/4923"
+    }
+  ],
+  "armPullRequests": [],
+  "risks": [
+    {
+      "id": "committed-binaries",
+      "severity": "medium",
+      "evidence": "1 committed EXE, DLL, LIB, or Node addon paths require architecture verification."
+    },
+    {
+      "id": "x64-assumptions",
+      "severity": "high",
+      "evidence": "Detected 398 x64 references versus 344 Arm references."
+    },
+    {
+      "id": "installer-updater",
+      "severity": "medium",
+      "evidence": "Installer or updater tooling has architecture-specific behavior."
+    },
+    {
+      "id": "release-gap",
+      "severity": "medium",
+      "evidence": "Latest stable release has x64 assets and no ARM64-labeled asset."
+    },
+    {
+      "id": "test-coverage",
+      "severity": "medium",
+      "evidence": "No obvious test directory or test project was detected."
+    }
+  ],
+  "scores": {
+    "customerImpact": 10,
+    "technicalRisk": 7,
+    "portingReadiness": 5
+  },
+  "effortEstimate": {
+    "band": "substantial",
+    "minimumDays": 7,
+    "maximumDays": 28,
+    "rationale": "The port needs explicit subsystem, dependency, installer, or plugin fallbacks."
+  },
+  "deliveryWindow": {
+    "days": null,
+    "fit": "not-assessed",
+    "rationale": "No delivery window was supplied; readiness and effort are reported independently."
+  },
+  "recommendation": "Viable native ARM64 candidate with explicit subsystem, dependency, installer, or plugin fallbacks.",
+  "committedOutcome": [
+    "Architecture-isolated x64 and ARM64 builds",
+    "ARM64 portable artifact",
+    "PE architecture inventory",
+    "Physical-device core scenario validation",
+    "Before-and-after evidence"
+  ],
+  "fallback": [
+    "Use an operating-system service instead of an unavailable x64-only optional dependency.",
+    "Defer installer or updater integration before reducing native core quality.",
+    "Report incompatible optional plugins instead of loading them in-process."
+  ],
+  "warnings": []
+}

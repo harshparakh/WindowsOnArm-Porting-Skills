@@ -8,7 +8,7 @@ It turns one successful app port into a repeatable workflow:
 2. **Build** architecture-isolated ARM64 or Arm64EC outputs with explicit native-dependency and fallback decisions.
 3. **Prove** binary and process architecture, UI behavior, package integrity, and before-and-after performance.
 
-Flow Launcher is the complete proof project. Ditto is the second-target assessment showing that Scout can reject a poor fit before engineering starts.
+Flow Launcher is the complete proof project. ShareX is a positive next-candidate assessment, while Ditto demonstrates that Scout can reject a poor fit before engineering starts.
 
 ## Skills
 
@@ -135,6 +135,7 @@ Generated proof reports live under `examples/`.
 
 - `examples/flow-launcher-proof/`: package, architecture, test, device, and benchmark summary.
 - `examples/flow-launcher-assessment/`: pre-port Flow Launcher readiness assessment.
+- `examples/sharex-assessment/`: positive next-candidate assessment with an ARM64 release gap and a 7-28 day effort estimate.
 - `examples/ditto-assessment/`: second-target scouting demonstration using the hackathon's seven-day delivery window; no port was started.
 
 ## Evidence boundaries
