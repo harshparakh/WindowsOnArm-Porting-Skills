@@ -1,58 +1,66 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "ccba7e62e351eea6538a0b57aaec3f76c209083c",
+  "sourceCommit": "cd253079cb97afdab016f267a2f8c03d2a6a070b",
   "device": {
     "osBuild": "26688",
     "architecture": "arm64",
     "processor": "Snapdragon X1E80100"
   },
   "tests": {
-    "passed": 463,
+    "passed": 466,
     "failed": 0
   },
   "packages": {
     "arm64": {
-      "file": "Flow-Launcher-hackathon-ccba7e6-win-arm64-Portable.zip",
-      "size": 178924819,
-      "sha256": "5f0a8d31c2204aef848014aea9681891e110be7051c6936934c1c77a75212e1a",
+      "file": "Flow-Launcher-pr-4659-cd25307-win-arm64-Portable.zip",
+      "size": 179013452,
+      "sha256": "d5489f31bfe2c3ccd6f4292e4d5e71aea459e9462a2c24dff7ba38fdb4127714",
       "plugins": 12,
+      "peFiles": 474,
       "architectureMismatches": 0
     },
     "x64": {
-      "file": "Flow-Launcher-hackathon-ccba7e6-win-x64-Portable.zip",
-      "size": 184455079,
-      "sha256": "b071b2ad4cef09eeec6751e9ded57a1d22038f32c7e168402038d9f08748cc90",
+      "file": "Flow-Launcher-pr-4659-cd25307-win-x64-Portable.zip",
+      "size": 184457276,
+      "sha256": "9c9c452b16a9e8a074a0187c644deeb38db1427535144c0bcf17d76e0bc17020",
       "plugins": 12,
+      "peFiles": 475,
       "architectureMismatches": 0
     }
   },
   "deviceValidation": {
-    "scenarioCount": 11,
+    "queryScenarioCount": 11,
     "settingsPassed": true,
+    "warmActivationPassed": true,
     "globalActivationPassed": true,
+    "nativeEverythingSearchPassed": true,
     "requiredArm64Modules": [
       "Flow.Launcher.exe",
       "coreclr.dll",
       "PresentationFramework.dll",
       "e_sqlite3.dll",
-      "libSkiaSharp.dll"
+      "libSkiaSharp.dll",
+      "Everything3.dll"
     ],
     "loadErrors": 0
   },
   "sameCommitMedianReductionPercent": {
-    "processColdLaunch": 48.41,
-    "warmActivation": 49.6,
-    "settingsOpen": 41.21,
-    "processCpu": 48.66,
-    "workingSet": 12.17,
-    "programQuery": 56.13,
-    "windowsSearchQuery": 42.52,
-    "browserBookmarkQuery": 20.44
+    "processColdLaunch": 50.42,
+    "warmActivation": 46.28,
+    "settingsOpen": 39.94,
+    "processCpu": 52.43,
+    "workingSet": 15.39,
+    "programQuery": 61.88,
+    "windowsSearchQuery": 22.4,
+    "browserBookmarkQuery": 33.7
   },
   "limitations": [
     "Process-cold is not reboot-cold.",
     "No battery-life claim.",
     "Kernel WPR traces require elevation.",
-    "MSIX installation requires machine certificate trust."
-  ]
+    "MSIX installation requires machine certificate trust.",
+    "Benchmark Explorer results use Windows Search; native Everything was validated separately."
+  ],
+  "upstreamPullRequest": "https://github.com/Flow-Launcher/Flow.Launcher/pull/4659",
+  "benchmarkComparisonSha256": "460582e0e4e5fca786c851b2e98935ccecadcd10964f16a9e36e790608628d0f"
 }

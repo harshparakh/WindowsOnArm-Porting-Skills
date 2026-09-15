@@ -1,6 +1,6 @@
 # Flow Launcher ARM64 Proof
 
-**Source commit:** `ccba7e62e351eea6538a0b57aaec3f76c209083c`
+**Source commit:** `cd253079cb97afdab016f267a2f8c03d2a6a070b`
 **Device:** Windows 11 build 26688 on Snapdragon X1E80100 ARM64
 **Sample count:** 20 trials per architecture
 **Benchmark method:** Same device, profile template, query corpus, Windows Search scope, power mode, and UI Automation harness. Screen recording was disabled during timed runs.
@@ -9,32 +9,32 @@
 
 | Output | Result |
 |---|---|
-| ARM64 portable ZIP | 12 bundled plugins, 178,924,819 bytes, SHA-256 `5f0a8d31c2204aef848014aea9681891e110be7051c6936934c1c77a75212e1a` |
-| x64 portable ZIP | 12 bundled plugins, 184,455,079 bytes, SHA-256 `b071b2ad4cef09eeec6751e9ded57a1d22038f32c7e168402038d9f08748cc90` |
-| ARM64 PE inventory | 472 files, 0 mismatches: 296 AnyCPU, 153 managed ARM64, 23 native ARM64 |
+| ARM64 portable ZIP | 12 bundled plugins, 179,013,452 bytes, SHA-256 `d5489f31bfe2c3ccd6f4292e4d5e71aea459e9462a2c24dff7ba38fdb4127714` |
+| x64 portable ZIP | 12 bundled plugins, 184,457,276 bytes, SHA-256 `9c9c452b16a9e8a074a0187c644deeb38db1427535144c0bcf17d76e0bc17020` |
+| ARM64 PE inventory | 474 files, 0 mismatches: 296 AnyCPU, 153 managed ARM64, 25 native ARM64 |
 | x64 PE inventory | 475 files, 0 mismatches: 296 AnyCPU, 153 managed x64, 26 native x64 |
-| Existing tests | 463 passed, 0 failed |
-| Native UI scenarios | 11 bundled-plugin scenarios, Settings, and global activation passed |
-| Required native modules | ARM64 `Flow.Launcher.exe`, `coreclr.dll`, `PresentationFramework.dll`, `e_sqlite3.dll`, and `libSkiaSharp.dll` loaded |
+| Existing tests | 466 passed, 0 failed |
+| Native UI scenarios | 11 query scenarios, Settings, warm activation, global activation, and native Everything file search passed |
+| Required native modules | ARM64 `Flow.Launcher.exe`, `coreclr.dll`, `PresentationFramework.dll`, `e_sqlite3.dll`, `libSkiaSharp.dll`, and `Everything3.dll` loaded |
 
 ## Same-commit median comparison
 
 | Metric | x64 emulated | ARM64 native | Reduction |
 |---|---:|---:|---:|
-| Process-cold launch | 4,200.66 ms | 2,167.12 ms | 48.41% |
-| Warm activation | 468.69 ms | 236.22 ms | 49.60% |
-| Settings open | 1,711.49 ms | 1,006.17 ms | 41.21% |
-| Process CPU | 14.59 s | 7.49 s | 48.66% |
-| Working set | 805.5 MiB | 707.5 MiB | 12.17% |
-| Program query | 692.69 ms | 303.92 ms | 56.13% |
-| Windows Search query | 239.39 ms | 137.59 ms | 42.52% |
-| BrowserBookmark query | 133.87 ms | 106.51 ms | 20.44% |
+| Process-cold launch | 4,900.47 ms | 2,429.89 ms | 50.42% |
+| Warm activation | 538.29 ms | 289.18 ms | 46.28% |
+| Settings open | 1,945.28 ms | 1,168.32 ms | 39.94% |
+| Process CPU | 17.23 s | 8.20 s | 52.43% |
+| Working set | 638.2 MiB | 540.0 MiB | 15.39% |
+| Program query | 855.61 ms | 326.16 ms | 61.88% |
+| Windows Search query | 332.80 ms | 258.25 ms | 22.40% |
+| BrowserBookmark query | 188.80 ms | 125.17 ms | 33.70% |
 
 Positive reduction means lower latency, memory, or CPU. These results demonstrate correlation under a controlled same-device test; they do not claim battery-life improvement.
 
-## Fallback
+## Native Everything and fallback
 
-The bundled Everything SDK is x64-only and was not included in the ARM64 package. Explorer uses Windows Search by default. Selecting Everything on ARM64 returns a clear Windows Search fallback instead of loading an incompatible DLL.
+The ARM64 package includes voidtools-signed SDK2 and SDK3 wrappers. Their signatures, PE architecture, exported APIs, licenses, standalone IPC, and actual Flow Launcher result path were validated on the ARM64 device. Windows Search remains the default and the runtime fallback when Everything is absent or stopped.
 
 ## Limitations
 
@@ -42,6 +42,12 @@ The bundled Everything SDK is x64-only and was not included in the ARM64 package
 - Settings-open measurement includes the stable UI Automation command path used for both architectures.
 - Windows Performance Recorder kernel traces require an elevated session and are tracked separately.
 - The development-signed MSIX was generated, but installation requires machine certificate trust.
+- The benchmark corpus retains Windows Search as the Explorer scenario; native Everything behavior was validated separately and is not presented as an Everything performance comparison.
+
+## Upstream contribution
+
+- Pull request: [Flow-Launcher/Flow.Launcher#4659](https://github.com/Flow-Launcher/Flow.Launcher/pull/4659)
+- Current local proof commit: `cd253079cb97afdab016f267a2f8c03d2a6a070b`
 
 ## Related examples
 

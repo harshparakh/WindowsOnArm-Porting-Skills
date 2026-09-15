@@ -1,0 +1,23 @@
+name: Validate Agent Plugin
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate package, scripts, schemas, and tests
+        shell: pwsh
+        run: .\tests\Test-PluginPackage.ps1

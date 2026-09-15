@@ -1,6 +1,14 @@
 # Windows on Arm Porting Skills
 
-An Agent Plugins 1.0 package for assessing, porting, packaging, and verifying Windows applications on ARM64.
+A reusable Agent Plugins 1.0 package for assessing, porting, packaging, and verifying Windows applications on ARM64.
+
+It turns one successful app port into a repeatable workflow:
+
+1. **Assess** current source, architecture gaps, dependencies, packaging risk, estimated effort, and fit against an optional delivery window.
+2. **Build** architecture-isolated ARM64 or Arm64EC outputs with explicit native-dependency and fallback decisions.
+3. **Prove** binary and process architecture, UI behavior, package integrity, and before-and-after performance.
+
+Flow Launcher is the complete proof project. Ditto is the second-target assessment showing that Scout can reject a poor fit before engineering starts.
 
 ## Skills
 
@@ -10,11 +18,14 @@ An Agent Plugins 1.0 package for assessing, porting, packaging, and verifying Wi
 
 ## Install
 
-Install the local package in GitHub Copilot CLI:
+Clone the repository and install the package in GitHub Copilot CLI:
 
 ```powershell
-copilot plugin install C:\path\to\WindowsOnArm-Porting-Skills
+git clone https://github.com/harshparakh/WindowsOnArm-Porting-Skills.git
+copilot plugin install .\WindowsOnArm-Porting-Skills
 ```
+
+Versioned package ZIPs are also attached to the GitHub releases.
 
 The package follows Agent Plugins 1.0:
 
@@ -36,6 +47,8 @@ examples/
 pwsh -File .\tests\Test-PluginPackage.ps1
 python -m unittest discover -s .\tests -p "test_*.py"
 ```
+
+The repository runs the same package validation on Windows for every push and pull request.
 
 ## Direct script usage
 
@@ -111,13 +124,23 @@ pwsh -File .\scripts\Capture-WoaWpr.ps1 `
 The proof project demonstrates:
 
 - Current-source x64 and ARM64 portable ZIPs.
-- ARM64-native .NET, WPF, SQLite, and Skia modules.
-- Windows Search fallback when no authoritative ARM64 Everything SDK is bundled.
+- ARM64-native .NET, WPF, SQLite, Skia, and voidtools Everything SDK modules.
+- Signed ARM64 Everything SDK2 and SDK3 wrappers with pinned provenance, matching exports, valid licenses, and live Flow Launcher UI validation.
+- Windows Search as the default and runtime fallback when Everything is absent or stopped.
 - PE validation across every shipped EXE and DLL.
 - Repeatable UI and benchmark evidence on physical ARM64 hardware.
+- An open upstream contribution at [Flow-Launcher/Flow.Launcher#4659](https://github.com/Flow-Launcher/Flow.Launcher/pull/4659).
 
 Generated proof reports live under `examples/`.
 
 - `examples/flow-launcher-proof/`: package, architecture, test, device, and benchmark summary.
 - `examples/flow-launcher-assessment/`: pre-port Flow Launcher readiness assessment.
-- `examples/ditto-assessment/`: second-repository scouting demonstration; no port was started.
+- `examples/ditto-assessment/`: second-target scouting demonstration using the hackathon's seven-day delivery window; no port was started.
+
+## Evidence boundaries
+
+- Benchmark results are same-device, same-profile, same-corpus comparisons with 20 trials per architecture.
+- Process-cold means a new process with a restored profile and warm operating-system file cache.
+- No battery or energy improvement is claimed.
+- Community plugins with in-process native dependencies require their own architecture validation.
+- Windows Performance Recorder trace evidence is not included in the proof project.
