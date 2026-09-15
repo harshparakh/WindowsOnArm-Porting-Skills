@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "generatedAt": "2026-09-14T20:24:35.401593+00:00",
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-15T18:26:54.721589+00:00",
   "sourceMode": "github",
   "repository": {
     "owner": "sabrogden",
@@ -14,9 +14,9 @@
     "pushedAt": "2026-07-07T03:33:19Z",
     "license": "GPL-3.0",
     "primaryLanguage": "C",
-    "stars": 7144,
-    "forks": 446,
-    "openIssues": 773
+    "stars": 7153,
+    "forks": 447,
+    "openIssues": 774
   },
   "release": {
     "latest": {
@@ -27,24 +27,24 @@
         {
           "name": "DittoDebug_3_25_113_0.7z",
           "size": 11846453,
-          "downloads": 1813,
+          "downloads": 1820,
           "url": "https://github.com/sabrogden/Ditto/releases/download/3.25.113.0/DittoDebug_3_25_113_0.7z"
         },
         {
           "name": "DittoPortable_3_25_113_0.zip",
           "size": 5116571,
-          "downloads": 107422,
+          "downloads": 107677,
           "url": "https://github.com/sabrogden/Ditto/releases/download/3.25.113.0/DittoPortable_3_25_113_0.zip"
         },
         {
           "name": "DittoSetup_3_25_113_0.exe",
           "size": 5773896,
-          "downloads": 278514,
+          "downloads": 279324,
           "url": "https://github.com/sabrogden/Ditto/releases/download/3.25.113.0/DittoSetup_3_25_113_0.exe"
         }
       ]
     },
-    "totalAssetDownloads": 387749,
+    "totalAssetDownloads": 388821,
     "arm64Assets": [],
     "x64Assets": [],
     "windowsAssets": [
@@ -212,10 +212,20 @@
   "scores": {
     "customerImpact": 10,
     "technicalRisk": 10,
-    "oneWeekFeasibility": 1
+    "portingReadiness": 1
   },
-  "oneWeekFeasible": false,
-  "recommendation": "High-risk one-week port; constrain scope to architecture proof and one core scenario.",
+  "effortEstimate": {
+    "band": "large",
+    "minimumDays": 21,
+    "maximumDays": 60,
+    "rationale": "Native code, committed binaries, packaging, or weak test coverage require staged investigation."
+  },
+  "deliveryWindow": {
+    "days": 7,
+    "fit": "unlikely",
+    "rationale": "The 7 day delivery window is shorter than the estimated 21-60 day effort."
+  },
+  "recommendation": "High-risk candidate; complete architecture proof and dependency replacement planning before a full port. The 7 day delivery window is shorter than the estimated 21-60 day effort.",
   "committedOutcome": [
     "Architecture-isolated x64 and ARM64 builds",
     "ARM64 portable artifact",

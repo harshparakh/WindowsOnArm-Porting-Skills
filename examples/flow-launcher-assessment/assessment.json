@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "generatedAt": "2026-09-14T20:24:25.003419+00:00",
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-15T18:26:45.759720+00:00",
   "sourceMode": "local",
   "repository": {
     "owner": "Flow-Launcher",
@@ -8,15 +8,15 @@
     "fullName": "Flow-Launcher/Flow.Launcher",
     "url": "https://github.com/Flow-Launcher/Flow.Launcher",
     "defaultBranch": "dev",
-    "analyzedCommit": "f80c84078eaa4ef1245405a20dcac81b37278947",
+    "analyzedCommit": "232574355da35452840d1db42697ec67f7c97e8c",
     "workingTreeDirty": false,
     "workingTreeStatus": [],
-    "pushedAt": "2026-09-13T14:47:51Z",
+    "pushedAt": "2026-09-15T17:22:26Z",
     "license": "MIT",
     "primaryLanguage": "C#",
-    "stars": 15565,
+    "stars": 15568,
     "forks": 643,
-    "openIssues": 308
+    "openIssues": 311
   },
   "release": {
     "latest": {
@@ -27,30 +27,30 @@
         {
           "name": "Flow-Launcher-Portable.zip",
           "size": 206030350,
-          "downloads": 17444,
+          "downloads": 17606,
           "url": "https://github.com/Flow-Launcher/Flow.Launcher/releases/download/v2.1.3/Flow-Launcher-Portable.zip"
         },
         {
           "name": "Flow-Launcher-Setup.exe",
           "size": 101801984,
-          "downloads": 105526,
+          "downloads": 106426,
           "url": "https://github.com/Flow-Launcher/Flow.Launcher/releases/download/v2.1.3/Flow-Launcher-Setup.exe"
         },
         {
           "name": "FlowLauncher-2.1.3-full.nupkg",
           "size": 101801677,
-          "downloads": 26711,
+          "downloads": 26760,
           "url": "https://github.com/Flow-Launcher/Flow.Launcher/releases/download/v2.1.3/FlowLauncher-2.1.3-full.nupkg"
         },
         {
           "name": "RELEASES",
           "size": 83,
-          "downloads": 2323556,
+          "downloads": 2346370,
           "url": "https://github.com/Flow-Launcher/Flow.Launcher/releases/download/v2.1.3/RELEASES"
         }
       ]
     },
-    "totalAssetDownloads": 2473237,
+    "totalAssetDownloads": 2497162,
     "arm64Assets": [],
     "x64Assets": [],
     "windowsAssets": [
@@ -64,12 +64,30 @@
     "latestReleaseHasX64Asset": false,
     "latestReleaseHasWindowsAsset": true,
     "releaseAssetGap": true,
-    "x64ReferenceCount": 143,
-    "arm64ReferenceCount": 20,
-    "committedBinaryCount": 2,
+    "x64ReferenceCount": 423,
+    "arm64ReferenceCount": 60,
+    "committedBinaryCount": 487,
     "committedBinaryExamples": [
-      "Plugins/Flow.Launcher.Plugin.Explorer/EverythingSDK/x64/Everything.dll",
-      "Plugins/Flow.Launcher.Plugin.Explorer/EverythingSDK/x64/Everything3.dll"
+      "Output/Release/Accessibility.dll",
+      "Output/Release/Ben.Demystifier.dll",
+      "Output/Release/BitFaster.Caching.dll",
+      "Output/Release/ChefKeys.dll",
+      "Output/Release/CommunityToolkit.Mvvm.dll",
+      "Output/Release/D3DCompiler_47_cor3.dll",
+      "Output/Release/DeltaCompressionDotNet.MsDelta.dll",
+      "Output/Release/DeltaCompressionDotNet.PatchApi.dll",
+      "Output/Release/DeltaCompressionDotNet.dll",
+      "Output/Release/DirectWriteForwarder.dll",
+      "Output/Release/Droplex.dll",
+      "Output/Release/EverythingSDK/x64/Everything.dll",
+      "Output/Release/EverythingSDK/x64/Everything3.dll",
+      "Output/Release/FSharp.Core.dll",
+      "Output/Release/Fizzler.dll",
+      "Output/Release/Flow.Launcher.Core.dll",
+      "Output/Release/Flow.Launcher.Infrastructure.dll",
+      "Output/Release/Flow.Launcher.Localization.Attributes.dll",
+      "Output/Release/Flow.Launcher.Plugin.dll",
+      "Output/Release/Flow.Launcher.dll"
     ],
     "nativeLanguageDetected": false
   },
@@ -187,6 +205,13 @@
     }
   ],
   "armPullRequests": [
+    {
+      "number": 4659,
+      "title": "Add native ARM64 portable builds and architecture validation",
+      "state": "open",
+      "updatedAt": "2026-09-15T01:05:19Z",
+      "url": "https://github.com/Flow-Launcher/Flow.Launcher/pull/4659"
+    },
     {
       "number": 2985,
       "title": "ARM64 Build",
@@ -332,12 +357,12 @@
     {
       "id": "committed-binaries",
       "severity": "medium",
-      "evidence": "2 committed EXE, DLL, LIB, or Node addon paths require architecture verification."
+      "evidence": "487 committed EXE, DLL, LIB, or Node addon paths require architecture verification."
     },
     {
       "id": "x64-assumptions",
       "severity": "high",
-      "evidence": "Detected 143 x64 references versus 20 Arm references."
+      "evidence": "Detected 423 x64 references versus 60 Arm references."
     },
     {
       "id": "installer-updater",
@@ -358,10 +383,20 @@
   "scores": {
     "customerImpact": 10,
     "technicalRisk": 7,
-    "oneWeekFeasibility": 5
+    "portingReadiness": 5
   },
-  "oneWeekFeasible": true,
-  "recommendation": "Feasible in one week only with an explicit subsystem or installer fallback.",
+  "effortEstimate": {
+    "band": "substantial",
+    "minimumDays": 7,
+    "maximumDays": 28,
+    "rationale": "The port needs explicit subsystem, dependency, installer, or plugin fallbacks."
+  },
+  "deliveryWindow": {
+    "days": 7,
+    "fit": "conditional",
+    "rationale": "The 7 day delivery window overlaps the estimated 7-28 day effort and requires reduced scope or fallbacks."
+  },
+  "recommendation": "Viable native ARM64 candidate with explicit subsystem, dependency, installer, or plugin fallbacks. The 7 day delivery window overlaps the estimated 7-28 day effort and requires reduced scope or fallbacks.",
   "committedOutcome": [
     "Architecture-isolated x64 and ARM64 builds",
     "ARM64 portable artifact",

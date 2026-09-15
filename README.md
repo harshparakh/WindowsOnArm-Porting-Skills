@@ -4,7 +4,7 @@ An Agent Plugins 1.0 package for assessing, porting, packaging, and verifying Wi
 
 ## Skills
 
-- `woa-scout`: measures repository impact, architecture gaps, dependency and packaging risk, and one-week feasibility.
+- `woa-scout`: measures repository impact, architecture gaps, dependency and packaging risk, general porting readiness, estimated effort, and fit against an optional delivery window.
 - `woa-port`: chooses ARM64 or Arm64EC, isolates build outputs, handles native dependencies and fallbacks, and adds CI and packaging.
 - `woa-verify`: proves binary and process architecture, runs UI Automation scenarios, captures benchmarks and traces, and generates evidence reports.
 
@@ -45,6 +45,7 @@ Repository assessment:
 python .\scripts\woa_scout.py `
   --repo Flow-Launcher/Flow.Launcher `
   --local-path C:\src\Flow.Launcher `
+  --delivery-window-days 7 `
   --output C:\artifacts\flow-assessment
 ```
 

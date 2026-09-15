@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "windows-on-arm-porting",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Assess, port, package, and verify Windows applications for native ARM64 execution.",
   "author": {
     "name": "Harsh Parakh"

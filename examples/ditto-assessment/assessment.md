@@ -1,20 +1,27 @@
 # Windows on Arm Assessment: sabrogden/Ditto
 
-- Generated: 2026-09-14T20:24:35.401593+00:00
+- Generated: 2026-09-15T18:26:54.721589+00:00
 - Source mode: github
 - Default branch: `master`
-- Stars: 7,144
+- Stars: 7,153
 - Latest stable release: `3.25.113.0`
 
 ## Decision
 
-High-risk one-week port; constrain scope to architecture proof and one core scenario.
+High-risk candidate; complete architecture proof and dependency replacement planning before a full port. The 7 day delivery window is shorter than the estimated 21-60 day effort.
 
 | Score | Value |
 |---|---:|
 | Customer impact | 10/10 |
 | Technical risk | 10/10 |
-| One-week feasibility | 1/10 |
+| Porting readiness | 1/10 |
+
+## Effort and Delivery Window
+
+- Estimated effort: 21-60 days (large)
+- Delivery window: 7
+- Window fit: unlikely
+- Rationale: The 7 day delivery window is shorter than the estimated 21-60 day effort.
 
 ## Architecture Gap
 

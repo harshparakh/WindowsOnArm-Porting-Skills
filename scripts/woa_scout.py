@@ -293,6 +293,71 @@ def score_impact(stars: int, downloads: int) -> int:
     return max(1, min(10, round(star_component + download_component)))
 
 
+def estimate_effort(porting_readiness: int) -> dict[str, Any]:
+    if porting_readiness >= 8:
+        return {
+            "band": "small",
+            "minimumDays": 2,
+            "maximumDays": 7,
+            "rationale": "Mostly managed code with limited architecture-specific dependency or packaging work.",
+        }
+    if porting_readiness >= 6:
+        return {
+            "band": "moderate",
+            "minimumDays": 5,
+            "maximumDays": 14,
+            "rationale": "A focused port is plausible after proving native dependencies and packaging.",
+        }
+    if porting_readiness >= 4:
+        return {
+            "band": "substantial",
+            "minimumDays": 7,
+            "maximumDays": 28,
+            "rationale": "The port needs explicit subsystem, dependency, installer, or plugin fallbacks.",
+        }
+    return {
+        "band": "large",
+        "minimumDays": 21,
+        "maximumDays": 60,
+        "rationale": "Native code, committed binaries, packaging, or weak test coverage require staged investigation.",
+    }
+
+
+def assess_delivery_window(
+    effort: dict[str, Any],
+    delivery_window_days: int | None,
+) -> dict[str, Any]:
+    if delivery_window_days is None:
+        return {
+            "days": None,
+            "fit": "not-assessed",
+            "rationale": "No delivery window was supplied; readiness and effort are reported independently.",
+        }
+    if delivery_window_days >= int(effort["maximumDays"]):
+        fit = "strong"
+        rationale = (
+            f"The estimated {effort['minimumDays']}-{effort['maximumDays']} day effort "
+            f"fits within the {delivery_window_days} day delivery window."
+        )
+    elif delivery_window_days >= int(effort["minimumDays"]):
+        fit = "conditional"
+        rationale = (
+            f"The {delivery_window_days} day delivery window overlaps the estimated "
+            f"{effort['minimumDays']}-{effort['maximumDays']} day effort and requires reduced scope or fallbacks."
+        )
+    else:
+        fit = "unlikely"
+        rationale = (
+            f"The {delivery_window_days} day delivery window is shorter than the estimated "
+            f"{effort['minimumDays']}-{effort['maximumDays']} day effort."
+        )
+    return {
+        "days": delivery_window_days,
+        "fit": fit,
+        "rationale": rationale,
+    }
+
+
 def build_assessment(
     metadata: dict[str, Any],
     releases: list[dict[str, Any]],
@@ -302,6 +367,7 @@ def build_assessment(
     pull_requests: list[dict[str, Any]],
     source_mode: str,
     warnings: list[str],
+    delivery_window_days: int | None = None,
 ) -> dict[str, Any]:
     combined_text = "\n".join(contents.values()).lower()
     combined_paths = "\n".join(paths).lower()
@@ -399,19 +465,23 @@ def build_assessment(
 
     managed_bonus = 1 if any(system["name"] == "dotnet" for system in build_systems) and not native_language else 0
     arm_evidence_bonus = 1 if arm64_references > 0 or issues or pull_requests else 0
-    feasibility_score = max(1, min(10, 10 - risk_score + managed_bonus + arm_evidence_bonus))
+    readiness_score = max(1, min(10, 10 - risk_score + managed_bonus + arm_evidence_bonus))
     downloads = int(release["totalAssetDownloads"])
     stars = int(metadata.get("stargazers_count") or 0)
     impact_score = score_impact(stars, downloads)
-    if feasibility_score >= 7:
-        recommendation = "Strong one-week candidate for a native ARM64 proof with portable packaging."
-    elif feasibility_score >= 5:
-        recommendation = "Feasible in one week only with an explicit subsystem or installer fallback."
+    effort = estimate_effort(readiness_score)
+    delivery_window = assess_delivery_window(effort, delivery_window_days)
+    if readiness_score >= 7:
+        recommendation = "Strong native ARM64 candidate; proceed to dependency proof and architecture-isolated packaging."
+    elif readiness_score >= 5:
+        recommendation = "Viable native ARM64 candidate with explicit subsystem, dependency, installer, or plugin fallbacks."
     else:
-        recommendation = "High-risk one-week port; constrain scope to architecture proof and one core scenario."
+        recommendation = "High-risk candidate; complete architecture proof and dependency replacement planning before a full port."
+    if delivery_window_days is not None:
+        recommendation = f"{recommendation} {delivery_window['rationale']}"
 
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
         "sourceMode": source_mode,
         "repository": {
@@ -453,9 +523,10 @@ def build_assessment(
         "scores": {
             "customerImpact": impact_score,
             "technicalRisk": risk_score,
-            "oneWeekFeasibility": feasibility_score,
+            "portingReadiness": readiness_score,
         },
-        "oneWeekFeasible": feasibility_score >= 5,
+        "effortEstimate": effort,
+        "deliveryWindow": delivery_window,
         "recommendation": recommendation,
         "committedOutcome": [
             "Architecture-isolated x64 and ARM64 builds",
@@ -493,7 +564,14 @@ def write_markdown(report: dict[str, Any], path: pathlib.Path) -> None:
         "|---|---:|",
         f"| Customer impact | {scores['customerImpact']}/10 |",
         f"| Technical risk | {scores['technicalRisk']}/10 |",
-        f"| One-week feasibility | {scores['oneWeekFeasibility']}/10 |",
+        f"| Porting readiness | {scores['portingReadiness']}/10 |",
+        "",
+        "## Effort and Delivery Window",
+        "",
+        f"- Estimated effort: {report['effortEstimate']['minimumDays']}-{report['effortEstimate']['maximumDays']} days ({report['effortEstimate']['band']})",
+        f"- Delivery window: {report['deliveryWindow']['days'] if report['deliveryWindow']['days'] is not None else 'not supplied'}",
+        f"- Window fit: {report['deliveryWindow']['fit']}",
+        f"- Rationale: {report['deliveryWindow']['rationale']}",
         "",
         "## Architecture Gap",
         "",
@@ -542,9 +620,16 @@ def main() -> int:
         action="store_true",
         help="Allow a dirty local tree and record its status. Clean trees are required by default.",
     )
+    parser.add_argument(
+        "--delivery-window-days",
+        type=int,
+        help="Optional project delivery window. Readiness and effort remain independent when omitted.",
+    )
     parser.add_argument("--output", required=True, help="Output directory")
     parser.add_argument("--github-token-env", default="GITHUB_TOKEN")
     args = parser.parse_args()
+    if args.delivery_window_days is not None and args.delivery_window_days <= 0:
+        raise ValueError("--delivery-window-days must be greater than zero")
 
     owner, repository = parse_repository(args.repo)
     token = os.environ.get(args.github_token_env)
@@ -647,6 +732,7 @@ def main() -> int:
         pull_requests,
         source_mode,
         warnings,
+        args.delivery_window_days,
     )
     output = pathlib.Path(args.output).resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -660,7 +746,8 @@ def main() -> int:
             {
                 "repository": report["repository"]["fullName"],
                 "scores": report["scores"],
-                "oneWeekFeasible": report["oneWeekFeasible"],
+                "effortEstimate": report["effortEstimate"],
+                "deliveryWindow": report["deliveryWindow"],
                 "output": str(output),
                 "warnings": len(report["warnings"]),
             },

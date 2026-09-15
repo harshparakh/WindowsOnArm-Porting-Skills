@@ -77,7 +77,29 @@ class ScoutTests(unittest.TestCase):
         self.assertTrue(report["architecture"]["releaseAssetGap"])
         self.assertGreater(report["architecture"]["x64ReferenceCount"], 0)
         self.assertGreaterEqual(report["scores"]["technicalRisk"], 5)
+        self.assertIn("portingReadiness", report["scores"])
+        self.assertEqual("not-assessed", report["deliveryWindow"]["fit"])
+        self.assertNotIn("oneWeekFeasible", report)
         self.assertIn("squirrel", {item["name"] for item in report["packaging"]})
+
+    def test_delivery_window_is_optional_and_project_specific(self):
+        effort = MODULE.estimate_effort(5)
+
+        no_window = MODULE.assess_delivery_window(effort, None)
+        hackathon_window = MODULE.assess_delivery_window(effort, 7)
+        planned_window = MODULE.assess_delivery_window(effort, 30)
+
+        self.assertEqual("not-assessed", no_window["fit"])
+        self.assertEqual("conditional", hackathon_window["fit"])
+        self.assertEqual("strong", planned_window["fit"])
+        self.assertEqual(7, hackathon_window["days"])
+
+    def test_high_risk_candidate_does_not_fit_short_window(self):
+        effort = MODULE.estimate_effort(2)
+        delivery_window = MODULE.assess_delivery_window(effort, 7)
+
+        self.assertEqual("large", effort["band"])
+        self.assertEqual("unlikely", delivery_window["fit"])
 
     def test_arm64_release_asset_closes_asset_gap(self):
         summary = MODULE.release_summary(
