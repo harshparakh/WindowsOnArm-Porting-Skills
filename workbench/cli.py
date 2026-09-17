@@ -36,6 +36,17 @@ def mutate(store: Store, args: argparse.Namespace) -> dict:
             if args.command == "approve":
                 from .core import approve
                 return approve(store, args.run_id, args.plan_hash)
+            if args.command == "resume":
+                if state.get("pendingDispatch") or (state.get("githubRun") and not state["githubRun"].get("artifactsIngested")):
+                    from .github_runner import run_build
+                    return run_build(store, state, config)
+                if state["status"] != "running":
+                    raise WorkbenchError("This run has no interrupted operation to reconcile.")
+                if state.get("recovery") and not state.get("verification"):
+                    store.event(state, "verify", "needs-verification", "Restored bytes are retained; independent verification must be run.")
+                else:
+                    store.event(state, state["stage"], "failed", "The previous local operation no longer owns the run. Retry the required step explicitly.")
+                return state
             if args.command == "port":
                 from .agent import port_with_agent
                 from .github_runner import run_build
@@ -99,9 +110,10 @@ def main() -> int:
     scout.add_argument("repository")
     scout.add_argument("--project")
     scout.add_argument("--commit")
+    scout.add_argument("--scope", help="Explicit bounded port outcome included in the approval and coding-agent prompt.")
     scout.add_argument("--release-repo", action="append", default=[],
                        help="Explicit related release repository; repeat to include separate development channels.")
-    for name in ("status", "port", "build", "verify", "inject-fault", "repair", "export"):
+    for name in ("status", "resume", "port", "build", "verify", "inject-fault", "repair", "export"):
         command = commands.add_parser(name)
         command.add_argument("run_id")
         if name == "build":
@@ -137,7 +149,7 @@ def main() -> int:
         if args.command == "scout":
             from .github_runner import bind_runner
             config = configuration(store)
-            state = prepare_source(store, args.repository, args.project, args.commit, args.release_repo)
+            state = prepare_source(store, args.repository, args.project, args.commit, args.release_repo, args.scope)
             with store.lock(state["id"]):
                 state = store.load(state["id"])
                 try:

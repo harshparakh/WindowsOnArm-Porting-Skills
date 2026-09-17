@@ -82,6 +82,29 @@ class WorkbenchTests(unittest.TestCase):
         self.assertEqual(1, len(projects))
         self.assertEqual("net9.0-windows", core.choose_project(projects, None)["framework"])
 
+    def test_visual_basic_uses_generic_project_and_agent_tools(self):
+        project = self.source / "VisualBasic.vbproj"
+        project.write_text(
+            '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>WinExe</OutputType>'
+            '<TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF>'
+            '</PropertyGroup></Project>', encoding="utf-8")
+        projects = core.discover_projects(self.source)
+        self.assertEqual(2, len(projects))
+        selected = core.choose_project(projects, "VisualBasic.vbproj")
+        self.assertEqual("VisualBasic", selected["assemblyName"])
+        agent.create_source(self.source, "Options.vb", "Public Class Options\nEnd Class\n")
+        agent.replace_source(self.source, "Options.vb", "Public Class Options", "Public NotInheritable Class Options")
+        self.assertIn("Public NotInheritable Class Options", agent.read_source(self.source, "Options.vb"))
+        plan = {**self.plan, "project": selected["path"], "framework": selected["framework"],
+                "assemblyName": selected["assemblyName"], "sdkVersion": "10.0.401"}
+        plan["commands"] = {rid: core.commands_for(selected["path"], selected["framework"], rid, f"<isolated-output>/{rid}")
+                            for rid in plan["architectures"]}
+        self.assertEqual("baseline", runner.validate_plan(plan, core.digest(plan), ""))
+        for runtime in plan["architectures"]:
+            publish = plan["commands"][runtime][1]
+            self.assertIn("-p:PublishSingleFile=false", publish)
+            self.assertIn("-p:IncludeNativeLibrariesForSelfExtract=false", publish)
+
     def test_approval_is_bound_to_current_source_and_plan(self):
         with self.assertRaises(core.WorkbenchError):
             core.require_approval(self.store, self.state, "source-plan")
@@ -367,6 +390,27 @@ class WorkbenchTests(unittest.TestCase):
             core.require_approval(self.store, self.state, "interrupted-port")
         self.assertIn("Partial.props", pathlib.Path(self.state["artifacts"]["partialPatch"]).read_text())
         self.assertNotIn("verification", self.state)
+
+    def test_resume_reconciles_partial_edits_without_starting_an_agent(self):
+        self.initialize_git_source()
+        core.begin_port(self.store, self.state)
+        agent.create_source(self.source, "Partial.vb", "Public Class PartialState\nEnd Class")
+        args = argparse.Namespace(command="resume", run_id=self.state["id"])
+        with patch.object(github_runner, "run_build") as build:
+            state = cli.mutate(self.store, args)
+        build.assert_not_called()
+        self.assertEqual("interrupted-port", state["approvalKind"])
+        self.assertEqual("needs-approval", state["status"])
+        self.assertEqual(state["planHash"], core.digest(state["approvalPlan"]))
+
+    def test_resume_without_a_remote_job_never_dispatches_one(self):
+        self.store.event(self.state, "verify", "running", "Interrupted local inspection")
+        args = argparse.Namespace(command="resume", run_id=self.state["id"])
+        with patch.object(cli, "configuration", return_value={}), patch.object(github_runner, "run_build") as build:
+            state = cli.mutate(self.store, args)
+        build.assert_not_called()
+        self.assertEqual("failed", state["status"])
+        self.assertEqual("verify", state["stage"])
 
     def prepare_candidate_evidence(self):
         package = self.run / "arm64"

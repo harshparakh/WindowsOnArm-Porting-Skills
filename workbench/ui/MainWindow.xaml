@@ -1,0 +1,322 @@
+<Window x:Class="RepoToArm.Workbench.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Repo to Arm" Width="1250" Height="900" MinWidth="1020" MinHeight="700"
+        WindowStartupLocation="CenterScreen" Background="{StaticResource Paper}"
+        FontFamily="Segoe UI" FontSize="13" UseLayoutRounding="True">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="230"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+    <Border Background="#142638" Padding="24,28,20,24">
+      <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,32">
+          <Border Background="#284D78" CornerRadius="8" Width="42" Height="42" HorizontalAlignment="Left" Margin="0,0,0,17">
+            <TextBlock Text="R→A" Foreground="White" FontSize="16" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <TextBlock Text="Repo to Arm" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="24"/>
+          <TextBlock Text="NATIVE WINDOWS WORKBENCH" Foreground="#ADBDD0" FontSize="9" Margin="0,7,0,0"/>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,24,0,0">
+          <Border Background="#294056" Height="1" Margin="0,0,0,16"/>
+          <TextBlock Text="Trust the evidence." Foreground="#FFFFFF" FontWeight="SemiBold" Margin="0,0,0,7"/>
+          <TextBlock Text="Explicit approval. Isolated builds. Independently reported verification."
+                     Foreground="#BCCBD9" TextWrapping="Wrap" FontSize="12" LineHeight="19"/>
+        </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl ItemsSource="{Binding Stages}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,0,0,22" ToolTip="{Binding Detail}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{Binding Number}" Foreground="#A3B7CD" FontSize="11" Margin="0,3,0,0"/>
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Title}" Foreground="White" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <Border Background="#F3F5F7" CornerRadius="3" HorizontalAlignment="Left" Padding="6,3" Margin="0,7,0,0">
+                      <TextBlock Text="{Binding DisplayStatus}" Foreground="{Binding Accent}" FontSize="9" FontWeight="Bold"/>
+                    </Border>
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+    <Grid Grid.Column="1" Margin="28,25,28,20">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <Grid Margin="0,0,0,18">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Text="From repository to native." FontSize="26" FontWeight="SemiBold"/>
+          <TextBlock Text="One deliberate step at a time. Every result backed by evidence."
+                     Foreground="{StaticResource Muted}" FontSize="12" Margin="0,7,0,0"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+          <TextBlock Text="{Binding BannerLabel}" Style="{StaticResource Label}" HorizontalAlignment="Right"/>
+          <Border Background="White" BorderBrush="{Binding BannerColor}" BorderThickness="1"
+                  CornerRadius="5" Padding="12,6" HorizontalAlignment="Right">
+            <TextBlock Text="{Binding BannerStatus}" Foreground="{Binding BannerColor}" FontSize="13" FontWeight="Bold"
+                       AutomationProperties.AutomationId="RunStatus"/>
+          </Border>
+        </StackPanel>
+      </Grid>
+      <ScrollViewer x:Name="ContentScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                    PanningMode="VerticalOnly">
+        <StackPanel Margin="0,0,10,0">
+          <Border Style="{StaticResource Card}" Margin="0,0,0,15">
+            <StackPanel>
+              <Label Content="_Repository" Target="{Binding ElementName=RepositoryInput}" Padding="0" FontWeight="SemiBold" Margin="0,0,0,8"/>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="RepositoryInput" Text="{Binding Repository, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding IsIdle}" AutomationProperties.AutomationId="RepositoryInput"
+                         AutomationProperties.Name="Public GitHub repository"/>
+                <Button Grid.Column="1" Content="_Analyze" Command="{Binding AnalyzeCommand}"
+                        Style="{StaticResource PrimaryButton}" Margin="10,0,0,0" MinWidth="104"
+                        AutomationProperties.AutomationId="Analyze"/>
+              </Grid>
+              <TextBlock Text="{Binding RepositoryHelp}" Foreground="{StaticResource Muted}" FontSize="11" Margin="0,7,0,15" TextWrapping="Wrap"/>
+              <Expander Header="Pinned source and scope" Margin="0,0,0,15" AutomationProperties.AutomationId="SourceOptions">
+                <StackPanel Margin="0,12,0,0" IsEnabled="{Binding IsIdle}">
+                  <TextBlock Text="Full source commit (optional)" Style="{StaticResource Label}"/>
+                  <TextBox Text="{Binding SourceCommitInput, UpdateSourceTrigger=PropertyChanged}" MaxLength="40"
+                           AutomationProperties.AutomationId="SourceCommitInput"/>
+                  <TextBlock Text="SDK project (.csproj or .vbproj)" Style="{StaticResource Label}" Margin="0,10,0,5"/>
+                  <TextBox Text="{Binding SourceProject, UpdateSourceTrigger=PropertyChanged}"
+                           AutomationProperties.AutomationId="SourceProjectInput"/>
+                  <TextBlock Text="Port scope (optional)" Style="{StaticResource Label}" Margin="0,10,0,5"/>
+                  <TextBox Text="{Binding SourceScope, UpdateSourceTrigger=PropertyChanged}" MaxLength="4000"
+                           AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="110" VerticalScrollBarVisibility="Auto"
+                           AutomationProperties.AutomationId="SourceScopeInput"/>
+                  <TextBlock Text="{Binding SourceOptionsHelp}" Foreground="{StaticResource Muted}" TextWrapping="Wrap" FontSize="11" Margin="0,8,0,0"/>
+                </StackPanel>
+              </Expander>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Run _ID" Target="{Binding ElementName=RunIdInput}" VerticalAlignment="Center" Padding="0,0,12,0"/>
+                <TextBox Grid.Column="1" x:Name="RunIdInput" Text="{Binding RunId, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding IsIdle}" AutomationProperties.AutomationId="RunIdInput"/>
+                <Button Grid.Column="2" Content="_Refresh status" Command="{Binding RefreshCommand}" Margin="10,0,0,0"
+                        AutomationProperties.AutomationId="RefreshStatus"/>
+              </Grid>
+            </StackPanel>
+          </Border>
+          <Border Background="#EEF3F9" BorderBrush="#CDD9E7" BorderThickness="1" CornerRadius="7" Padding="15,12" Margin="0,0,0,15">
+            <StackPanel>
+              <TextBlock Text="{Binding Notice}" Foreground="{Binding NoticeColor}" TextWrapping="Wrap" LineHeight="19"
+                         AutomationProperties.AutomationId="OperationNotice" AutomationProperties.LiveSetting="Polite"/>
+              <DockPanel Visibility="{Binding IsCommandActive, Converter={StaticResource BooleanVisibility}}" Margin="0,10,0,0">
+                <Button DockPanel.Dock="Right" Content="_Cancel owned process" Command="{Binding CancelCommand}" Margin="12,0,0,0"
+                        AutomationProperties.AutomationId="CancelCommand"/>
+                <TextBlock Text="{Binding ActiveOperation}" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="12"/>
+              </DockPanel>
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource Card}" Margin="0,0,0,15">
+            <StackPanel>
+              <DockPanel Margin="0,0,0,15">
+                <TextBlock DockPanel.Dock="Right" Text="{Binding CurrentStage}" Foreground="{Binding StateColor}" FontWeight="SemiBold"/>
+                <TextBlock Text="Current plan" FontSize="17" FontWeight="SemiBold"/>
+              </DockPanel>
+              <TextBlock Text="{Binding SelectedRepository}" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,3"/>
+              <TextBlock Text="{Binding SelectedRun, StringFormat='Run: {0}'}" Foreground="{StaticResource Muted}" FontSize="11" Margin="0,0,0,15"/>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="24"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="PINNED COMMIT" Style="{StaticResource Label}"/>
+                  <TextBox Text="{Binding Commit, Mode=OneWay}" Style="{StaticResource Readout}" AutomationProperties.Name="Pinned source commit"/>
+                  <TextBlock Text="PROJECT" Style="{StaticResource Label}" Margin="0,12,0,5"/>
+                  <TextBox Text="{Binding Project, Mode=OneWay}" Style="{StaticResource Readout}" AutomationProperties.Name="Selected project"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Text="CURRENT PLAN HASH" Style="{StaticResource Label}"/>
+                  <TextBox Text="{Binding PlanHash, Mode=OneWay}" Style="{StaticResource Readout}" AutomationProperties.Name="Current plan hash"/>
+                  <TextBlock Text="APPROVAL KIND" Style="{StaticResource Label}" Margin="0,12,0,5"/>
+                  <TextBox Text="{Binding ApprovalKind, Mode=OneWay}" Style="{StaticResource Readout}" AutomationProperties.Name="Approval kind"/>
+                </StackPanel>
+              </Grid>
+              <TextBlock Text="{Binding PlanPatchLabel}" Style="{StaticResource Label}" Margin="0,12,0,5"/>
+              <TextBox Text="{Binding PlanPatch, Mode=OneWay}" Style="{StaticResource Readout}"
+                       AutomationProperties.Name="Source diff for current plan"/>
+              <Expander Header="Exact approval-bound execution plan" Margin="0,12,0,0">
+                <TextBox Text="{Binding ExactPlan, Mode=OneWay}" Style="{StaticResource Readout}"
+                         FontFamily="Consolas" FontSize="11" MaxHeight="260" VerticalScrollBarVisibility="Auto"
+                         AutomationProperties.AutomationId="ExactPlan"/>
+              </Expander>
+              <Border Background="#FFF4E4" BorderBrush="#D2AC72" BorderThickness="1" CornerRadius="5"
+                      Padding="12" Margin="0,12,0,0"
+                      Visibility="{Binding HasInterruptedPort, Converter={StaticResource BooleanVisibility}}">
+                <StackPanel>
+                  <TextBlock Text="PORT INTERRUPTED · PARTIAL EDITS ONLY" Foreground="#925410" FontSize="11" FontWeight="Bold"/>
+                  <TextBlock Text="{Binding InterruptionReason}" Foreground="#70400D" TextWrapping="Wrap" Margin="0,6,0,0"
+                             AutomationProperties.AutomationId="InterruptionReason"/>
+                </StackPanel>
+              </Border>
+              <TextBlock Text="{Binding ApprovalHelp}" Foreground="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,17,0,12"/>
+              <Button Command="{Binding ApproveCommand}" HorizontalAlignment="Left"
+                      Style="{StaticResource PrimaryButton}" AutomationProperties.AutomationId="ApprovePlan"
+                      AutomationProperties.Name="{Binding ApprovalButtonLabel}" ToolTip="{Binding PlanHash}">
+                <StackPanel MaxWidth="540">
+                  <TextBlock Text="{Binding ApprovalButtonLabel}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                             FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding PlanHash, StringFormat='Plan: {0}'}"
+                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                             FontFamily="Consolas" FontSize="10" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                </StackPanel>
+              </Button>
+              <Border Background="{StaticResource Line}" Height="1" Margin="0,19,0,16"/>
+              <WrapPanel>
+                <Button Content="{Binding PortButtonLabel}" Command="{Binding PortCommand}" Margin="0,0,8,8" AutomationProperties.AutomationId="Port"/>
+                <Button Content="_Build in isolated runner" Command="{Binding BuildCommand}" Margin="0,0,8,8" AutomationProperties.AutomationId="Build"/>
+                <Button Content="_Verify" Command="{Binding VerifyCommand}" Margin="0,0,8,8" AutomationProperties.AutomationId="Verify"/>
+                <Button Content="_Export evidence" Command="{Binding ExportCommand}" Margin="0,0,8,8" AutomationProperties.AutomationId="ExportEvidence"/>
+                <Button Content="Resume / reconcile" Command="{Binding ResumeCommand}" Margin="0,0,8,8" AutomationProperties.AutomationId="ResumeRun"/>
+              </WrapPanel>
+              <TextBlock Text="{Binding ActionHelp}" Foreground="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,3,0,14"/>
+              <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Text="DEMO RECOVERY" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                <WrapPanel>
+                  <Button Content="Inject _demo fault" Command="{Binding InjectFaultCommand}" Foreground="#925410" BorderBrush="#B58A51"
+                          Margin="0,0,8,0" AutomationProperties.AutomationId="InjectDemoFault"/>
+                  <Button Content="Re_pair" Command="{Binding RepairCommand}" AutomationProperties.AutomationId="Repair"/>
+                </WrapPanel>
+              </DockPanel>
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource Card}" Margin="0,0,0,15">
+            <StackPanel>
+              <DockPanel Margin="0,0,0,14">
+                <Button DockPanel.Dock="Right" Content="_Open output folder" Command="{Binding OpenOutputCommand}"
+                        AutomationProperties.AutomationId="OpenOutput"/>
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Text="Artifacts &amp; evidence" FontSize="17" FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding Totals}" FontSize="11" Foreground="{StaticResource Muted}" Margin="0,6,0,0"/>
+                </StackPanel>
+              </DockPanel>
+              <ItemsControl ItemsSource="{Binding Artifacts}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid Margin="0,0,0,8">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="{Binding Title}" Foreground="{StaticResource Muted}" VerticalAlignment="Top" Margin="0,4,12,0"/>
+                      <TextBox Grid.Column="1" Text="{Binding Path, Mode=OneWay}" Style="{StaticResource Readout}"
+                               AutomationProperties.Name="{Binding Title}"/>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{Binding StateFootnote}" Foreground="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0"/>
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource Card}">
+            <Expander x:Name="ConfigurationSection" Header="Local configuration" IsExpanded="{Binding ConfigurationOpen}" FontWeight="SemiBold">
+              <StackPanel Margin="0,18,0,0" TextElement.FontWeight="Normal">
+                <TextBlock Text="The Python executable and toolkit root are trusted operator configuration, not repository-supplied commands."
+                           Foreground="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                <Grid IsEnabled="{Binding IsIdle}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                  </Grid.RowDefinitions>
+                  <Label Content="Python .exe" Target="{Binding ElementName=PythonInput}" VerticalAlignment="Center"/>
+                  <TextBox Grid.Column="1" x:Name="PythonInput" Text="{Binding PythonPath, UpdateSourceTrigger=PropertyChanged}"
+                           Margin="0,0,0,9" AutomationProperties.AutomationId="PythonPath"/>
+                  <Label Grid.Row="1" Content="Backend root" Target="{Binding ElementName=BackendInput}" VerticalAlignment="Center"/>
+                  <TextBox Grid.Row="1" Grid.Column="1" x:Name="BackendInput" Text="{Binding BackendRoot, UpdateSourceTrigger=PropertyChanged}"
+                           Margin="0,0,0,9" AutomationProperties.AutomationId="BackendRoot"/>
+                  <Label Grid.Row="2" Content="Runs root" Target="{Binding ElementName=RunsInput}" VerticalAlignment="Center"/>
+                  <TextBox Grid.Row="2" Grid.Column="1" x:Name="RunsInput" Text="{Binding RunsRoot, UpdateSourceTrigger=PropertyChanged}"
+                           AutomationProperties.AutomationId="RunsRoot"/>
+                </Grid>
+                <TextBlock Text="{Binding ConfigurationMessage}" Foreground="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,13,0,12"/>
+                <Button Content="_Save configuration" Command="{Binding SaveSettingsCommand}" HorizontalAlignment="Left"
+                        AutomationProperties.AutomationId="SaveConfiguration"/>
+                <TextBlock Text="{Binding ConfigFile}" FontSize="10" Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,12,0,0"/>
+              </StackPanel>
+            </Expander>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+      <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,14,10,0" Padding="0">
+        <StackPanel>
+          <Grid Margin="16,12,16,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Live event stream" FontSize="15" FontWeight="SemiBold"/>
+            <TextBlock Grid.Column="1" Text="RECEIVED · ET" Foreground="{StaticResource Muted}" FontSize="10" VerticalAlignment="Center"/>
+          </Grid>
+          <ListBox x:Name="EventList" ItemsSource="{Binding Logs}" Height="145" Background="#142638" BorderThickness="0"
+                   Padding="10" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                   ScrollViewer.CanContentScroll="True" AutomationProperties.AutomationId="EventLog"
+                   AutomationProperties.Name="Backend events and errors">
+            <ListBox.ItemContainerStyle>
+              <Style TargetType="ListBoxItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Padding" Value="0,4"/>
+              </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="98"/>
+                    <ColumnDefinition Width="85"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{Binding Time}" Foreground="#A3B7CD" FontFamily="Consolas" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding Source}" Foreground="#8DC2FF" FontFamily="Consolas" FontSize="11"
+                             TextTrimming="CharacterEllipsis" ToolTip="{Binding Source}"/>
+                  <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Color}" FontFamily="Consolas"
+                             FontSize="12" TextWrapping="Wrap"/>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock Text="{Binding LogSummary}" FontSize="10" Foreground="{StaticResource Muted}" Margin="16,9,16,10" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+      <DockPanel Grid.Row="3" Margin="0,10,10,0">
+        <Button DockPanel.Dock="Right" Content="Local _configuration" Click="OnConfigure" MinHeight="24" Padding="8,3"
+                FontSize="10" AutomationProperties.AutomationId="ShowConfiguration"/>
+        <TextBlock Text="Native WPF · No embedded shell · Backend state is authoritative"
+                   Foreground="{StaticResource Muted}" FontSize="10" VerticalAlignment="Center"/>
+      </DockPanel>
+    </Grid>
+  </Grid>
+</Window>

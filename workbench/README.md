@@ -4,10 +4,11 @@ Repo to Arm is a constrained preview for SDK-style .NET Windows desktop applicat
 
 ## Supported Scope
 
-- Public GitHub source pinned to a full commit, with one explicit .NET 8, 9, or 10 Windows WPF/WinForms executable project.
+- Public GitHub source pinned to a full commit, with one explicit SDK-style C# or Visual Basic .NET 8, 9, or 10 Windows WPF/WinForms executable project.
 - Full ARM64 portable output and a retained x64 comparison package.
 - Text patches below 50 KB. Submodules, binary patches, renames, framework migrations, installers, and updater redesign require a different execution profile.
 - Separate source worktrees for x64, ARM64, and existing test projects, so intermediate outputs and restore state cannot cross architectures.
+- Directory-based self-contained publishing with single-file bundling and native self-extraction disabled, so every native runtime file remains inspectable.
 - Discovered test projects run with explicit `dotnet test` commands. Custom repository test scripts are not automatically executed.
 
 The command-line engine is usable independently of a graphical frontend.
@@ -65,6 +66,8 @@ python -m workbench.cli --root C:\Work\RepoToArm\runs scout owner/application `
 
 Add repeatable `--release-repo owner/development-builds` arguments when a verified related repository publishes another release channel. The run records Windows-specific observations across those channels. A macOS ARM64 asset cannot close a Windows gap, and a stable-channel gap cannot hide an observed Windows ARM64 prerelease. Filename evidence is not binary or runtime proof.
 
+Use `--scope "<bounded outcome>"` to state additional source requirements, such as an opt-in isolated profile for safe device validation. The scope enters the approval and coding-agent prompt; it does not grant new shell tools or change the fixed build commands. `.vbproj` applications use the same workflow as `.csproj` applications, without wrappers or app-specific adapters.
+
 ## Execution
 
 Review the generated Scout report and `plan.json`. Source approval permits the unchanged x64 baseline and the scoped coding-agent phase. It does not approve running a third-party application on the host.
@@ -99,6 +102,8 @@ Approve the exact package hash and application command before launching third-pa
 Each command writes JSON Lines. Event records contain a monotonic sequence and real stage/status/detail values. A terminal `result` contains the current run; an `error` is accompanied by a nonzero exit code. Frontends must render these values, not infer success from an elapsed timer.
 
 `status <run-id>` is read-only. `port` can discover a killed earlier edit and return an `interrupted-port` approval instead of executing new work. Review its retained partial patch, approve the new hash, and invoke `port` again.
+
+`resume <run-id>` provides the same locked reconciliation to the UI. It can preserve interrupted source edits, resume monitoring/downloading an existing isolated job, or expose a failed local step for explicit retry. It does not approve partial work or start an unrelated build.
 
 Dispatch intent is persisted before the API request. An ambiguous response is reconciled against that invocation rather than silently dispatched twice. `build --retry-dispatch` explicitly permits another request only if no matching run is found. An interrupted artifact download resumes from its existing run, even when the build itself has already completed.
 

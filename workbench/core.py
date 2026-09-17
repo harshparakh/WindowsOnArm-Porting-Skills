@@ -33,6 +33,7 @@ STAGES = (
 REPO_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,99}/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}")
 COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}")
 RUN_PATTERN = re.compile(r"[0-9a-f]{12}")
+PROJECT_SUFFIXES = {".csproj", ".vbproj"}
 
 
 class WorkbenchError(RuntimeError):
@@ -176,7 +177,7 @@ def github_json(endpoint: str) -> Any:
 
 def discover_projects(source: pathlib.Path) -> list[dict[str, Any]]:
     projects = []
-    for file in sorted(source.rglob("*.csproj")):
+    for file in sorted(path for path in source.rglob("*") if path.is_file() and path.suffix.lower() in PROJECT_SUFFIXES):
         rel = file.relative_to(source).as_posix()
         if any(part in {".git", "obj", "bin"} for part in file.relative_to(source).parts):
             continue
@@ -256,7 +257,8 @@ def commands_for(project: str, framework: str, runtime: str, output: str) -> lis
         ["dotnet", "restore", project, "--runtime", runtime, "--nologo"],
         ["dotnet", "publish", project, "--configuration", "Release", "--framework", framework,
          "--runtime", runtime, "--self-contained", "true", "--output", output,
-         "-p:PublishReadyToRun=false", "-p:PublishTrimmed=false", "--nologo"],
+         "-p:PublishReadyToRun=false", "-p:PublishTrimmed=false", "-p:PublishSingleFile=false",
+         "-p:IncludeNativeLibrariesForSelfExtract=false", "--nologo"],
     ]
 
 
@@ -387,14 +389,18 @@ class Store:
 
 
 def prepare_source(store: Store, repository: str, requested_project: str | None = None,
-                   commit: str | None = None, release_repositories: list[str] | None = None) -> dict[str, Any]:
+                   commit: str | None = None, release_repositories: list[str] | None = None,
+                   requested_scope: str | None = None) -> dict[str, Any]:
+    if requested_scope is not None and (not isinstance(requested_scope, str) or not requested_scope.strip() or len(requested_scope) > 4000):
+        raise WorkbenchError("An explicit port scope must be nonempty text of at most 4,000 characters.")
     state = store.create(repository)
     with store.lock(state["id"]):
-        return _prepare_source(store, state, requested_project, commit, release_repositories)
+        return _prepare_source(store, state, requested_project, commit, release_repositories, requested_scope)
 
 
 def _prepare_source(store: Store, state: dict[str, Any], requested_project: str | None,
-                    commit: str | None, release_repositories: list[str] | None) -> dict[str, Any]:
+                    commit: str | None, release_repositories: list[str] | None,
+                    requested_scope: str | None) -> dict[str, Any]:
     run = store.path(state["id"])
     store.event(state, "scout", "running", "Resolving public repository and pinning source.")
     try:
@@ -432,10 +438,11 @@ def _prepare_source(store: Store, state: dict[str, Any], requested_project: str 
             "sourceIsolation": "worktree-per-runtime",
             "testCommands": test_commands_for(projects, "<isolated-output>/tests"),
             "assessmentSha256": file_hash(assessment),
-            "scope": "Native portable core; no installer/updater rewrite; no arbitrary shell commands.",
+            "scope": requested_scope.strip() if requested_scope is not None else
+                "Native portable core; no installer/updater rewrite; no arbitrary shell commands.",
         }
         write_json(run / "plan.json", plan)
-        state.update({"planHash": digest(plan), "approvalKind": "source-plan", "plan": plan})
+        state.update({"planHash": digest(plan), "approvalKind": "source-plan", "plan": plan, "approvalPlan": plan})
         store.event(state, "scout", "passed", "Source pinned and desktop project identified.", sourceCommit=commit)
         store.event(state, "approval", "needs-approval", "Review the exact pinned source and isolated build commands.")
         return state
@@ -554,7 +561,7 @@ def capture_interrupted_port(store: Store, state: dict[str, Any], reason: str) -
     state["portAttempt"]["status"] = "interrupted"
     state["interruptedPort"] = {"reason": reason, "at": now(), "patch": str(patch_path),
                                 "workingSourceHash": plan["workingSourceHash"]}
-    state.update({"planHash": digest(plan), "approvalKind": "interrupted-port"})
+    state.update({"planHash": digest(plan), "approvalKind": "interrupted-port", "approvalPlan": plan})
     state["artifacts"]["partialPatch"] = str(patch_path)
     store.event(state, "port", "interrupted", reason)
     store.event(state, "approval", "needs-approval", "Partial edits are preserved, not completed. Review and approve this resume plan.")
@@ -594,7 +601,7 @@ def finalize_port(store: Store, state: dict[str, Any]) -> dict[str, Any]:
     if state.get("portAttempt"):
         state["portAttempt"]["status"] = "completed"
     state["artifacts"].pop("partialPatch", None)
-    state.update({"planHash": digest(build_plan), "approvalKind": "build-patch"})
+    state.update({"planHash": digest(build_plan), "approvalKind": "build-patch", "approvalPlan": build_plan})
     state["artifacts"]["patch"] = str(run / "port.patch")
     state["artifacts"]["patchVerification"] = str(validated)
     store.event(state, "port", "passed", "Agent changes recorded; source diff must be reviewed before building.")

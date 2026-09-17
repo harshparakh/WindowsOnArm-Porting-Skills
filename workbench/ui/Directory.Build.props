@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <WorkbenchArtifactsRoot>$(LOCALAPPDATA)\AgencyCowork\artifacts\RepoToArm\workbench-ui</WorkbenchArtifactsRoot>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(WorkbenchArtifactsRoot)</ArtifactsPath>
+    <RestorePackagesPath>$(WorkbenchArtifactsRoot)\packages\</RestorePackagesPath>
+  </PropertyGroup>
+</Project>

@@ -69,6 +69,7 @@ def pinned_runner(config: dict) -> dict:
 def bind_runner(store: Store, state: dict, config: dict) -> dict:
     state["plan"]["runner"] = pinned_runner(config)
     state["planHash"] = digest(state["plan"])
+    state["approvalPlan"] = state["plan"]
     write_json(store.path(state["id"]) / "plan.json", state["plan"])
     store.save(state)
     return state

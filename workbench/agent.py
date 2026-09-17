@@ -10,7 +10,7 @@ from typing import Any, Callable
 from .core import TOOLKIT, Store, WorkbenchError, below, read_json, source_diff
 
 
-EDITABLE = {".cs", ".csproj", ".props", ".targets", ".xaml", ".json", ".config", ".md", ".txt", ".sln", ".slnx"}
+EDITABLE = {".cs", ".csproj", ".vb", ".vbproj", ".props", ".targets", ".xaml", ".json", ".config", ".md", ".txt", ".sln", ".slnx"}
 
 
 def scoped_file(source: pathlib.Path, relative: str, *, write: bool = False) -> pathlib.Path:

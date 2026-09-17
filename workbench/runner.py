@@ -11,7 +11,7 @@ import sys
 import zipfile
 
 from .core import (
-    COMMIT_PATTERN, RUN_PATTERN, WorkbenchError, commands_for, digest, discover_projects,
+    COMMIT_PATTERN, PROJECT_SUFFIXES, RUN_PATTERN, WorkbenchError, commands_for, digest, discover_projects,
     file_hash, git, now, parse_repository, read_json, relative_path, test_commands_for, tree_hash, tree_manifest,
     write_json,
 )
@@ -37,8 +37,10 @@ def validate_plan(plan: dict, approved_hash: str, patch: str) -> str:
     if not re.fullmatch(r"[0-9a-f]{64}", plan["assessmentSha256"]):
         raise WorkbenchError("The plan must bind the pinned source's Scout report.")
     relative_path(plan["project"])
-    if not plan["project"].endswith(".csproj"):
-        raise WorkbenchError("Only explicit C# project builds are supported.")
+    if pathlib.PurePosixPath(plan["project"]).suffix.lower() not in PROJECT_SUFFIXES:
+        raise WorkbenchError("Only explicit SDK-style C# or Visual Basic project builds are supported.")
+    if not isinstance(plan["scope"], str) or not plan["scope"].strip() or len(plan["scope"]) > 4000:
+        raise WorkbenchError("The approval must include a bounded, explicit port scope.")
     if not re.fullmatch(r"net(?:8|9|10)\.0-windows(?:\d+\.\d+\.\d+\.\d+)?", plan["framework"]):
         raise WorkbenchError("Unsupported target framework.")
     if not re.fullmatch(r"(?:8|9|10)\.\d+\.\d{3}", plan["sdkVersion"]):
@@ -55,7 +57,7 @@ def validate_plan(plan: dict, approved_hash: str, patch: str) -> str:
         if not isinstance(command, list) or len(command) != 9:
             raise WorkbenchError("Invalid approved test command.")
         relative_path(command[2])
-        if (not command[2].endswith(".csproj")
+        if (pathlib.PurePosixPath(command[2]).suffix.lower() not in PROJECT_SUFFIXES
                 or command != ["dotnet", "test", command[2], "-c", "Release", "--logger", "trx",
                                "--results-directory", "<isolated-output>/tests"]):
             raise WorkbenchError("Tests must use the fixed explicit project test profile.")
