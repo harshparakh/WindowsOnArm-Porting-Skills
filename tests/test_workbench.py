@@ -1,8 +1,10 @@
 import argparse
 import asyncio
+import base64
 import contextlib
 import copy
 import hashlib
+import gzip
 import io
 import json
 import os
@@ -16,7 +18,7 @@ import zipfile
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from workbench import agent, cli, core, evidence, github_runner, runner
+from workbench import agent, cli, core, evidence, github_runner, patches, runner
 
 
 class WorkbenchTests(unittest.TestCase):
@@ -219,6 +221,30 @@ class WorkbenchTests(unittest.TestCase):
         plan["patchSha256"] = hashlib.sha256(escaped.encode()).hexdigest()
         with self.assertRaises(core.WorkbenchError):
             runner.validate_plan(plan, core.digest(plan), escaped)
+
+    def test_large_patch_transport_preserves_original_bytes_and_approval(self):
+        text = "diff --git a/Large.cs b/Large.cs\n--- a/Large.cs\n+++ b/Large.cs\n" + (
+            "+\ufefftext with CRLF and repeated source content\r\n" * 1800)
+        self.assertGreater(len(text.encode("utf-8")), patches.MAX_WIRE_BYTES)
+        wire = patches.encode_patch(text)
+        self.assertTrue(wire.startswith(patches.PREFIX))
+        self.assertLessEqual(len(wire), patches.MAX_WIRE_BYTES)
+        self.assertEqual(text, patches.decode_patch(wire))
+        plan = {**self.plan, "patchSha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                "workingSourceHash": "c" * 64}
+        self.assertEqual("candidate", runner.validate_plan(plan, core.digest(plan), patches.decode_patch(wire)))
+        self.assertEqual("", patches.decode_patch(patches.encode_patch("")))
+
+    def test_patch_transport_rejects_corruption_and_expansion_overflow(self):
+        for value in (patches.PREFIX + "!invalid", patches.PREFIX + base64.b64encode(b"not gzip").decode(),
+                      "x" * (patches.MAX_WIRE_BYTES + 1)):
+            with self.subTest(value=value[:30]), self.assertRaises(core.WorkbenchError):
+                patches.decode_patch(value)
+        bomb = patches.PREFIX + base64.b64encode(gzip.compress(b"x" * (patches.MAX_PATCH_BYTES + 1), mtime=0)).decode()
+        with self.assertRaisesRegex(core.WorkbenchError, "expanded source limit"):
+            patches.decode_patch(bomb)
+        with self.assertRaisesRegex(core.WorkbenchError, "250 KB"):
+            patches.encode_patch("x" * (patches.MAX_PATCH_BYTES + 1))
 
     def test_zip_extraction_rejects_escape_case_collision_and_links(self):
         for name, entries in (
@@ -434,6 +460,30 @@ class WorkbenchTests(unittest.TestCase):
         build.assert_not_called()
         self.assertEqual("failed", state["status"])
         self.assertEqual("verify", state["stage"])
+
+    def test_reviewed_finalization_preserves_baseline_and_requires_a_new_build_approval(self):
+        self.initialize_git_source()
+        self.state["baseline"] = {"passed": True, "receipt": "retained baseline fixture"}
+        core.begin_port(self.store, self.state)
+        agent.create_source(self.source, "Complete.props", "<Project />")
+        core.capture_interrupted_port(self.store, self.state, "Controller transport interruption")
+        self.state = core.approve(self.store, self.state["id"], self.state["planHash"])
+        reviewed = core.tree_hash(self.source)
+        newer_runner = {**self.plan["runner"], "ref": "refs/tags/new-runner", "commit": "c" * 40}
+        args = argparse.Namespace(command="finalize", run_id=self.state["id"], reviewed_tree_hash="0" * 64)
+        with patch.object(cli, "configuration", return_value={}), \
+                patch.object(github_runner, "pinned_runner", return_value=newer_runner):
+            with self.assertRaisesRegex(core.WorkbenchError, "cumulative review"):
+                cli.mutate(self.store, args)
+            args.reviewed_tree_hash = reviewed
+            state = cli.mutate(self.store, args)
+        self.assertEqual("build-patch", state["approvalKind"])
+        self.assertEqual("needs-approval", state["status"])
+        self.assertEqual(newer_runner, state["approvalPlan"]["runner"])
+        self.assertEqual(self.plan["runner"], state["plan"]["runner"])
+        self.assertTrue(state["baseline"]["passed"])
+        with self.assertRaises(core.WorkbenchError):
+            core.require_approval(self.store, state, "build-patch")
 
     def prepare_candidate_evidence(self):
         package = self.run / "arm64"

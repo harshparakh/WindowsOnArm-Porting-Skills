@@ -15,6 +15,7 @@ from .core import (
     file_hash, git, now, parse_repository, read_json, relative_path, test_commands_for, tree_hash, tree_manifest,
     write_json,
 )
+from .patches import MAX_PATCH_BYTES, decode_patch
 
 
 BASE_KEYS = {
@@ -76,7 +77,7 @@ def validate_plan(plan: dict, approved_hash: str, patch: str) -> str:
     if operation == "baseline" and patch:
         raise WorkbenchError("The unchanged baseline must not contain a source patch.")
     if operation == "candidate":
-        if not patch.strip() or len(patch.encode("utf-8")) > 50000:
+        if not patch.strip() or len(patch.encode("utf-8")) > MAX_PATCH_BYTES:
             raise WorkbenchError("Candidate patch is missing or exceeds the supported input limit.")
         if hashlib.sha256(patch.encode("utf-8")).hexdigest() != plan["patchSha256"]:
             raise WorkbenchError("Patch does not match the reviewed build plan.")
@@ -96,7 +97,7 @@ def validate_plan(plan: dict, approved_hash: str, patch: str) -> str:
 def prepare(directory: pathlib.Path) -> dict:
     plan = json.loads(os.environ["RTA_PLAN_JSON"])
     approved_hash = os.environ["RTA_APPROVED_PLAN_HASH"]
-    patch = os.environ.get("RTA_PATCH", "")
+    patch = decode_patch(os.environ.get("RTA_PATCH", ""))
     operation = validate_plan(plan, approved_hash, patch)
     if not os.environ.get("GITHUB_ACTIONS") or not os.environ.get("RUNNER_TEMP"):
         raise WorkbenchError("Untrusted repository builds may run only in the configured disposable GitHub runner.")

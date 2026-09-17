@@ -580,13 +580,13 @@ def reconcile_interrupted_port(store: Store, state: dict[str, Any]) -> bool:
     return False
 
 
-def finalize_port(store: Store, state: dict[str, Any]) -> dict[str, Any]:
+def finalize_port(store: Store, state: dict[str, Any], runner_identity: dict[str, Any] | None = None) -> dict[str, Any]:
+    from .patches import encode_patch
     run = store.path(state["id"])
     patch = source_diff(store, state)
     if not patch.strip():
         raise WorkbenchError("The porting agent produced no changes; no port will be claimed.")
-    if len(patch.encode("utf-8")) > 50000:
-        raise WorkbenchError("This prototype requires a reviewed patch under 50 KB for the isolated runner.")
+    encode_patch(patch)
     (run / "port.patch").write_text(patch, encoding="utf-8", newline="\n")
     state["workingSourceHash"] = tree_hash(run / "source")
     validated = validate_patch_tree(store, state, run / "port.patch", state["workingSourceHash"])
@@ -595,6 +595,8 @@ def finalize_port(store: Store, state: dict[str, Any]) -> dict[str, Any]:
         "workingSourceHash": state["workingSourceHash"],
         "testCommands": test_commands_for(discover_projects(run / "source"), "<isolated-output>/tests"),
     }
+    if runner_identity is not None:
+        build_plan["runner"] = runner_identity
     write_json(run / "build-plan.json", build_plan)
     invalidate_package_state(state)
     state.pop("interruptedPort", None)

@@ -11,6 +11,7 @@ import uuid
 from typing import Any
 
 from .core import Store, WorkbenchError, canonical, digest, file_hash, invalidate_package_state, parse_repository, read_json, require_approval, safe_extract, tree_hash, write_json
+from .patches import encode_patch
 
 
 def gh(config: dict, arguments: list[str], payload: dict | None = None, *, binary: bool = False) -> Any:
@@ -115,15 +116,17 @@ def dispatch_build(store: Store, state: dict, config: dict, plan: dict, patch: s
             raise WorkbenchError("Dispatch outcome is unconfirmed. No duplicate was sent. Retry monitoring, or explicitly use build --retry-dispatch after reviewing GitHub.")
         state.setdefault("dispatchHistory", []).append({**intent, "resolution": "explicit-retry-with-no-matching-run"})
     invocation = f"{state['id']}-{uuid.uuid4().hex[:8]}"
+    payload = {"ref": runner["ref"], "inputs": {
+        "run_id": invocation, "plan": canonical(plan).decode("utf-8"),
+        "approved_plan_hash": digest(plan), "patch": encode_patch(patch),
+    }}
+    if len(canonical(payload)) > 64000:
+        raise WorkbenchError("The complete reviewed plan and patch exceed the workflow input budget.")
     state["pendingDispatch"] = {
         "invocation": invocation, "planHash": digest(plan), "repository": runner["repository"],
         "operation": operation, "requestedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
     }
     store.event(state, stage, "running", f"Dispatching {operation} build to a disposable Windows VM.")
-    payload = {"ref": runner["ref"], "inputs": {
-        "run_id": invocation, "plan": canonical(plan).decode("utf-8"),
-        "approved_plan_hash": digest(plan), "patch": patch,
-    }}
     dispatched = gh(config, ["api", "--method", "POST", "-H", "X-GitHub-Api-Version: 2026-03-10",
                             f"repos/{runner['repository']}/actions/workflows/{runner['workflow']}/dispatches"], payload)
     if not dispatched or not dispatched.get("workflow_run_id"):
@@ -147,6 +150,8 @@ def run_build(store: Store, state: dict, config: dict, *, retry_dispatch: bool =
     if current != runner:
         raise WorkbenchError("Runner code/ref changed after approval. Rebind and reapprove the plan.")
     patch = (run / "port.patch").read_bytes().decode("utf-8") if candidate else ""
+    from .runner import validate_plan
+    validate_plan(plan, digest(plan), patch)
     operation = "candidate" if candidate else "baseline"
     stage = "build" if candidate else "baseline"
     existing = state.get("githubRun", {})

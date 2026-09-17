@@ -9,7 +9,7 @@ import sys
 
 from .core import (
     Store, WorkbenchError, begin_port, capture_interrupted_port, finalize_port, parse_repository,
-    prepare_source, read_json, reconcile_interrupted_port, require_approval, write_json,
+    prepare_source, read_json, reconcile_interrupted_port, require_approval, tree_hash, write_json,
 )
 
 
@@ -47,6 +47,14 @@ def mutate(store: Store, args: argparse.Namespace) -> dict:
                 else:
                     store.event(state, state["stage"], "failed", "The previous local operation no longer owns the run. Retry the required step explicitly.")
                 return state
+            if args.command == "finalize":
+                if not state.get("baseline", {}).get("passed") or not state.get("interruptedPort"):
+                    raise WorkbenchError("Finalization requires a passed unchanged baseline and preserved source edits.")
+                require_approval(store, state, "interrupted-port")
+                if tree_hash(store.path(state["id"]) / "source") != args.reviewed_tree_hash:
+                    raise WorkbenchError("The source tree does not match the operator's cumulative review.")
+                from .github_runner import pinned_runner
+                return finalize_port(store, state, pinned_runner(config))
             if args.command == "port":
                 from .agent import port_with_agent
                 from .github_runner import run_build
@@ -122,6 +130,9 @@ def main() -> int:
     approval = commands.add_parser("approve")
     approval.add_argument("run_id")
     approval.add_argument("--plan-hash", required=True)
+    finalization = commands.add_parser("finalize")
+    finalization.add_argument("run_id")
+    finalization.add_argument("--reviewed-tree-hash", required=True)
     evidence = commands.add_parser("record-device")
     evidence.add_argument("run_id")
     evidence.add_argument("--report", required=True, type=pathlib.Path)

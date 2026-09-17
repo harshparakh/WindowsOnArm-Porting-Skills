@@ -17,7 +17,7 @@ on:
         type: string
         required: true
       patch:
-        description: Reviewed text patch; empty for the unchanged baseline
+        description: Reviewed text or bounded gzip64 patch; empty for the unchanged baseline
         type: string
         required: false
         default: ""
