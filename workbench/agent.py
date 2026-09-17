@@ -7,7 +7,7 @@ import pathlib
 import subprocess
 from typing import Any, Callable
 
-from .core import TOOLKIT, Store, WorkbenchError, below, read_json, source_diff
+from .core import TOOLKIT, Store, WorkbenchError, below, git, read_json, source_diff
 
 
 EDITABLE = {".cs", ".csproj", ".vb", ".vbproj", ".props", ".targets", ".xaml", ".json", ".config", ".md", ".txt", ".sln", ".slnx"}
@@ -54,8 +54,23 @@ def create_source(source: pathlib.Path, relative: str, text: str) -> None:
     path = scoped_file(source, relative, write=True)
     if path.exists() or len(text.encode("utf-8")) > 500000 or "\x00" in text:
         raise WorkbenchError("New-file tool refuses overwrites, binary text, and oversized content.")
+    newline = "\n"
+    if (source / ".git").exists():
+        home = source.parent / "git-home"
+        attributes = git(["check-attr", "-z", "text", "eol", "working-tree-encoding", "--", relative],
+                         cwd=source, home=home, preserve_output=True).split("\0")
+        if len(attributes) != 10 or attributes[-1] != "":
+            raise WorkbenchError("Git did not return the expected text-file attribute contract.")
+        values = {attributes[index + 1]: attributes[index + 2] for index in (0, 3, 6)}
+        if values["working-tree-encoding"].lower() not in {"unspecified", "unset", "utf-8"}:
+            raise WorkbenchError("The scoped text editor does not support this file's declared working-tree encoding.")
+        ending = values["eol"]
+        if ending not in {"lf", "crlf"} and values["text"] in {"set", "auto"}:
+            ending = git(["config", "--get", "core.eol"], cwd=source, home=home, accepted_codes=(0, 1)) or "native"
+        if ending == "crlf" or (ending == "native" and os.linesep == "\r\n"):
+            newline = "\r\n"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8", newline="\n")
+    path.write_bytes(text.replace("\r\n", "\n").replace("\n", newline).encode("utf-8"))
 
 
 def copilot_token(config: dict[str, Any]) -> str:

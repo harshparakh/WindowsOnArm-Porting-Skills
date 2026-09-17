@@ -420,6 +420,22 @@ class WorkbenchTests(unittest.TestCase):
         self.assertEqual(b"", (replay / "Empty.txt").read_bytes())
         self.assertEqual(4, len(core.tree_manifest(replay)))
 
+    def test_new_source_honors_git_native_text_checkout_and_replays_exactly(self):
+        (self.source / ".gitattributes").write_bytes(("* text=auto" + os.linesep).encode("utf-8"))
+        self.initialize_git_source()
+        agent.create_source(self.source, "NativeText.cs", "class NativeText\n{\n}\n")
+        self.assertEqual(("class NativeText" + os.linesep + "{" + os.linesep + "}" + os.linesep).encode(),
+                         (self.source / "NativeText.cs").read_bytes())
+        state = core.finalize_port(self.store, self.state)
+        self.assertEqual(core.tree_hash(self.source), core.tree_hash(pathlib.Path(state["artifacts"]["patchVerification"])))
+
+    def test_new_source_rejects_unsupported_working_tree_encoding(self):
+        (self.source / ".gitattributes").write_text("*.cs text working-tree-encoding=UTF-16LE\n", encoding="utf-8")
+        self.initialize_git_source()
+        with self.assertRaisesRegex(core.WorkbenchError, "working-tree encoding"):
+            agent.create_source(self.source, "Encoded.cs", "class Encoded {}")
+        self.assertFalse((self.source / "Encoded.cs").exists())
+
     def test_interrupted_port_preserves_edits_and_requires_fresh_approval(self):
         self.initialize_git_source()
         self.state = core.approve(self.store, self.state["id"], self.state["planHash"])
