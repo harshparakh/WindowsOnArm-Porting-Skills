@@ -35,7 +35,7 @@
       ]
     },
     "release": {
-      "type": "object"
+      "$ref": "#/$defs/releaseSummary"
     },
     "architecture": {
       "type": "object",
@@ -45,7 +45,32 @@
         "releaseAssetGap",
         "x64ReferenceCount",
         "arm64ReferenceCount"
-      ]
+      ],
+      "properties": {
+        "latestReleaseHasArm64Asset": {
+          "type": "boolean",
+          "description": "A Windows ARM64-labeled binary was observed in the selected primary release. Filename evidence only."
+        },
+        "latestReleaseHasX64Asset": {
+          "type": "boolean",
+          "description": "A Windows x64-labeled binary was observed in the selected primary release."
+        },
+        "releaseAssetGap": {
+          "type": "boolean",
+          "description": "Selected primary release has Windows x86/x64 binary labels but no Windows ARM64 binary label. False can mean unknown; not a project-wide port verdict."
+        },
+        "releaseAssetGapStatus": {
+          "enum": ["windows-arm64-observed", "windows-arm64-not-observed", "unknown"]
+        },
+        "windowsArm64Availability": {
+          "enum": ["observed", "unconfirmed"],
+          "description": "Filename evidence across supplied primary and explicitly related release responses, including prereleases and older releases. Does not verify native architecture."
+        },
+        "windowsArm64Evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/releaseEvidence"}
+        }
+      }
     },
     "buildSystems": {
       "type": "array"
@@ -99,6 +124,106 @@
     },
     "recommendation": {
       "type": "string"
+    }
+  },
+  "$defs": {
+    "assetNames": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "releaseAsset": {
+      "type": "object",
+      "properties": {
+        "name": {"type": ["string", "null"]},
+        "platform": {"enum": ["windows", "macos", "linux", "other", "unknown"]},
+        "architecture": {"enum": ["arm64", "arm64ec", "x64", "x86", "unknown"]},
+        "kind": {"enum": ["binary", "source", "checksum", "unknown"]}
+      },
+      "description": "Conservative filename classification, not inspected file contents. Generic archives without an OS label remain unknown."
+    },
+    "releaseEvidence": {
+      "type": "object",
+      "required": ["repository", "tag", "channel", "url", "assets"],
+      "properties": {
+        "repository": {"type": ["string", "null"]},
+        "tag": {"type": ["string", "null"]},
+        "channel": {"enum": ["stable", "prerelease"]},
+        "url": {"type": ["string", "null"]},
+        "assets": {"$ref": "#/$defs/assetNames"}
+      }
+    },
+    "releaseCoverage": {
+      "type": "object",
+      "required": [
+        "repository", "scope", "collectionStatus", "releaseLimit",
+        "returnedReleaseCount", "stableReleaseCount", "prereleaseCount",
+        "draftsExcluded", "historyComplete", "selection"
+      ],
+      "properties": {
+        "repository": {"type": ["string", "null"]},
+        "scope": {"enum": ["provided-releases", "github-release-page"]},
+        "collectionStatus": {"enum": ["provided", "collected", "failed"]},
+        "releaseLimit": {"type": ["integer", "null"], "minimum": 1},
+        "returnedReleaseCount": {"type": "integer", "minimum": 0},
+        "stableReleaseCount": {"type": "integer", "minimum": 0},
+        "prereleaseCount": {"type": "integer", "minimum": 0},
+        "draftsExcluded": {"type": "integer", "minimum": 0},
+        "historyComplete": {"const": false},
+        "selection": {"const": "first-stable-else-first-prerelease-in-response-order"}
+      }
+    },
+    "releaseSummary": {
+      "type": "object",
+      "properties": {
+        "latest": {
+          "type": ["object", "null"],
+          "properties": {
+            "tag": {"type": ["string", "null"]},
+            "channel": {"enum": ["stable", "prerelease"]},
+            "assets": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/releaseAsset"}
+            }
+          },
+          "description": "First stable release in the supplied response, otherwise first prerelease; drafts excluded. Not a guarantee of globally latest release."
+        },
+        "totalAssetDownloads": {"type": "integer", "minimum": 0},
+        "arm64Assets": {
+          "$ref": "#/$defs/assetNames",
+          "description": "ARM64-labeled binary candidates across all classified platforms. Use windowsArm64Assets for Windows conclusions."
+        },
+        "x64Assets": {
+          "$ref": "#/$defs/assetNames",
+          "description": "x64-labeled binary candidates across all classified platforms."
+        },
+        "windowsAssets": {"$ref": "#/$defs/assetNames"},
+        "windowsArm64Assets": {"$ref": "#/$defs/assetNames"},
+        "windowsX64Assets": {"$ref": "#/$defs/assetNames"},
+        "sourceAssets": {"$ref": "#/$defs/assetNames"},
+        "checksumAssets": {"$ref": "#/$defs/assetNames"},
+        "unknownAssets": {"$ref": "#/$defs/assetNames"},
+        "coverage": {"$ref": "#/$defs/releaseCoverage"},
+        "observedWindowsArm64Releases": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/releaseEvidence"}
+        },
+        "channels": {
+          "type": "object",
+          "properties": {
+            "stable": {
+              "anyOf": [{"$ref": "#/$defs/releaseSummary"}, {"type": "null"}]
+            },
+            "prerelease": {
+              "anyOf": [{"$ref": "#/$defs/releaseSummary"}, {"type": "null"}]
+            }
+          }
+        },
+        "relatedRepositories": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/releaseSummary"}
+        },
+        "unsearchedChannels": {"$ref": "#/$defs/assetNames"}
+      }
     }
   }
 }

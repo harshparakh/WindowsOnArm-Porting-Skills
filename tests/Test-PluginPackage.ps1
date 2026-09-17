@@ -51,6 +51,12 @@ $jsonFiles = @(
 )
 foreach ($jsonFile in $jsonFiles) {
     Get-Content -LiteralPath $jsonFile.FullName -Raw | ConvertFrom-Json | Out-Null
+    if ($jsonFile.Name -eq "assessment.json") {
+        if (-not (Test-Json -Json (Get-Content -LiteralPath $jsonFile.FullName -Raw) `
+            -SchemaFile (Join-Path $root "schemas\woa-scout.schema.json") -ErrorAction Stop)) {
+            throw "Scout assessment does not conform to its schema: $($jsonFile.FullName)"
+        }
+    }
 }
 
 & (Join-Path $root "tests\Test-BenchmarkSecurity.ps1") | Out-Null

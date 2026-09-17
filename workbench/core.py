@@ -267,13 +267,18 @@ def test_commands_for(projects: list[dict[str, Any]], output: str) -> list[list[
     ]
 
 
-def collect_scout(store: Store, state: dict[str, Any], source: pathlib.Path, commit: str) -> pathlib.Path:
+def collect_scout(store: Store, state: dict[str, Any], source: pathlib.Path, commit: str,
+                  release_repositories: list[str] | None = None) -> pathlib.Path:
     run = store.path(state["id"])
     output = run / "assessment"
-    completed = subprocess.run([
+    command = [
         sys.executable, str(TOOLKIT / "scripts" / "woa_scout.py"), "--repo", state["repository"],
         "--local-path", str(source), "--output", str(output),
-    ], capture_output=True, text=True, encoding="utf-8", env={**os.environ, "PYTHONUTF8": "1"}, timeout=600)
+    ]
+    for repository in release_repositories or []:
+        command.extend(["--release-repo", parse_repository(repository)])
+    completed = subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
+                               env={**os.environ, "PYTHONUTF8": "1"}, timeout=600)
     (run / "scout.log").write_text(completed.stdout + "\n" + completed.stderr, encoding="utf-8")
     if completed.returncode:
         raise WorkbenchError("Scout assessment failed. See scout.log; no build plan is approved.")
@@ -284,6 +289,13 @@ def collect_scout(store: Store, state: dict[str, Any], source: pathlib.Path, com
             or identity.get("workingTreeDirty") is not False):
         raise WorkbenchError("Scout did not assess the exact clean source commit.")
     state["artifacts"].update({"assessment": str(path), "scoutReport": str(output / "assessment.md")})
+    architecture = report["architecture"]
+    state["scout"] = {
+        "windowsArm64Availability": architecture["windowsArm64Availability"],
+        "windowsArm64Evidence": architecture["windowsArm64Evidence"],
+        "releaseAssetGapStatus": architecture["releaseAssetGapStatus"],
+        "recommendation": report["recommendation"],
+    }
     return path
 
 
@@ -375,14 +387,14 @@ class Store:
 
 
 def prepare_source(store: Store, repository: str, requested_project: str | None = None,
-                   commit: str | None = None) -> dict[str, Any]:
+                   commit: str | None = None, release_repositories: list[str] | None = None) -> dict[str, Any]:
     state = store.create(repository)
     with store.lock(state["id"]):
-        return _prepare_source(store, state, requested_project, commit)
+        return _prepare_source(store, state, requested_project, commit, release_repositories)
 
 
 def _prepare_source(store: Store, state: dict[str, Any], requested_project: str | None,
-                    commit: str | None) -> dict[str, Any]:
+                    commit: str | None, release_repositories: list[str] | None) -> dict[str, Any]:
     run = store.path(state["id"])
     store.event(state, "scout", "running", "Resolving public repository and pinning source.")
     try:
@@ -402,7 +414,7 @@ def _prepare_source(store: Store, state: dict[str, Any], requested_project: str 
             raise WorkbenchError("Checked-out source does not match the assessed commit.")
         if (source / ".gitmodules").exists():
             raise WorkbenchError("Submodule projects require a separately reviewed input closure.")
-        assessment = collect_scout(store, state, source, commit)
+        assessment = collect_scout(store, state, source, commit, release_repositories)
         projects = discover_projects(source)
         project = choose_project(projects, requested_project)
         manifest = tree_manifest(source)

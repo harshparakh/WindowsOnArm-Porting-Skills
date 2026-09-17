@@ -63,6 +63,8 @@ python -m workbench.cli --root C:\Work\RepoToArm\runs scout owner/application `
   --project src\Desktop\Desktop.csproj --commit <full-source-commit>
 ```
 
+Add repeatable `--release-repo owner/development-builds` arguments when a verified related repository publishes another release channel. The run records Windows-specific observations across those channels. A macOS ARM64 asset cannot close a Windows gap, and a stable-channel gap cannot hide an observed Windows ARM64 prerelease. Filename evidence is not binary or runtime proof.
+
 ## Execution
 
 Review the generated Scout report and `plan.json`. Source approval permits the unchanged x64 baseline and the scoped coding-agent phase. It does not approve running a third-party application on the host.

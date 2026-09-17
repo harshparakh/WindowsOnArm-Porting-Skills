@@ -99,6 +99,8 @@ def main() -> int:
     scout.add_argument("repository")
     scout.add_argument("--project")
     scout.add_argument("--commit")
+    scout.add_argument("--release-repo", action="append", default=[],
+                       help="Explicit related release repository; repeat to include separate development channels.")
     for name in ("status", "port", "build", "verify", "inject-fault", "repair", "export"):
         command = commands.add_parser(name)
         command.add_argument("run_id")
@@ -135,7 +137,7 @@ def main() -> int:
         if args.command == "scout":
             from .github_runner import bind_runner
             config = configuration(store)
-            state = prepare_source(store, args.repository, args.project, args.commit)
+            state = prepare_source(store, args.repository, args.project, args.commit, args.release_repo)
             with store.lock(state["id"]):
                 state = store.load(state["id"])
                 try:

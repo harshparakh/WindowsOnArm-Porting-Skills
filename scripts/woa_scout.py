@@ -242,48 +242,154 @@ def detect_tests(paths: list[str]) -> bool:
     return False
 
 
-def release_summary(releases: list[dict[str, Any]]) -> dict[str, Any]:
-    if not releases:
-        return {
-            "latest": None,
-            "totalAssetDownloads": 0,
-            "arm64Assets": [],
-            "x64Assets": [],
-            "windowsAssets": [],
+def classify_release_asset(name: str) -> dict[str, str]:
+    """Classify filename evidence only; labels do not verify binary contents."""
+    lower = name.lower()
+
+    def labeled(pattern: str) -> bool:
+        return bool(re.search(rf"(^|[-_. ])(?:{pattern})(?=[-_. ]|$)", lower))
+
+    platforms: set[str] = set()
+    windows_suffixes = (".exe", ".msi", ".msix", ".appx", ".msixbundle", ".appxbundle", ".dll")
+    if labeled(r"windows|win(?:32|64)?") or lower.endswith(windows_suffixes):
+        platforms.add("windows")
+    if labeled(r"macos|mac|osx|darwin") or lower.endswith((".dmg", ".pkg")):
+        platforms.add("macos")
+    if labeled(r"linux|ubuntu|debian") or lower.endswith((".deb", ".rpm", ".appimage")):
+        platforms.add("linux")
+    if labeled(r"android|freebsd|openbsd|netbsd|ios"):
+        platforms.add("other")
+    platform = next(iter(platforms)) if len(platforms) == 1 else "unknown"
+
+    architectures = [
+        architecture
+        for architecture, pattern in (
+            ("arm64", r"arm64|aarch64"),
+            ("arm64ec", r"arm64ec"),
+            ("x64", r"x64|amd64|x86_64|win64"),
+            ("x86", r"x86(?!_64)|i[3-6]86"),
+        )
+        if labeled(pattern)
+    ]
+    architecture = architectures[0] if len(architectures) == 1 else "unknown"
+    if labeled(r"checksums?|(?:sha(?:1|224|256|384|512)|md5)(?:sums?)?|signatures?") or lower.endswith(
+        (".asc", ".sig", ".minisig")
+    ):
+        kind = "checksum"
+    elif labeled(r"source|sources|src"):
+        kind = "source"
+    elif lower.endswith(
+        windows_suffixes
+        + (".dmg", ".pkg", ".deb", ".rpm", ".appimage", ".zip", ".7z",
+           ".tar.gz", ".tgz", ".tar.xz", ".tar.bz2", ".tar.zst", ".nupkg")
+    ) and platform != "unknown" and not labeled(r"symbols?|debugsymbols?|pdb|docs?"):
+        kind = "binary"
+    else:
+        kind = "unknown"
+    return {"platform": platform, "architecture": architecture, "kind": kind}
+
+
+def summarize_release(release: dict[str, Any] | None) -> dict[str, Any]:
+    assets = [
+        {
+            "name": asset.get("name"),
+            "size": asset.get("size"),
+            "downloads": asset.get("download_count"),
+            "url": asset.get("browser_download_url"),
+            **classify_release_asset(str(asset.get("name") or "")),
         }
-    latest = next(
-        (release for release in releases if not release.get("draft") and not release.get("prerelease")),
-        releases[0],
-    )
-    assets = list(latest.get("assets") or [])
-    arm_pattern = re.compile(r"(arm64|aarch64|windows[-_. ]?on[-_. ]?arm)", re.I)
-    x64_pattern = re.compile(r"(^|[-_. ])(x64|amd64|win64)([-_. ]|$)", re.I)
-    windows_pattern = re.compile(r"\.(exe|msi|msix|appx|zip|7z|nupkg)$", re.I)
-    source_pattern = re.compile(r"(^|[-_. ])source([-_. ]|$)", re.I)
+        for asset in (release or {}).get("assets") or []
+    ]
+    binaries = [asset for asset in assets if asset["kind"] == "binary"]
+    windows = [asset for asset in binaries if asset["platform"] == "windows"]
     return {
         "latest": {
-            "tag": latest.get("tag_name"),
-            "publishedAt": latest.get("published_at"),
-            "url": latest.get("html_url"),
-            "assets": [
+            "tag": release.get("tag_name"),
+            "publishedAt": release.get("published_at"),
+            "url": release.get("html_url"),
+            "channel": "prerelease" if release.get("prerelease") else "stable",
+            "assets": assets,
+        } if release is not None else None,
+        "totalAssetDownloads": sum(int(asset["downloads"] or 0) for asset in assets),
+        "arm64Assets": [asset["name"] for asset in binaries if asset["architecture"] == "arm64"],
+        "x64Assets": [asset["name"] for asset in binaries if asset["architecture"] == "x64"],
+        "windowsAssets": [asset["name"] for asset in windows],
+        "windowsArm64Assets": [asset["name"] for asset in windows if asset["architecture"] == "arm64"],
+        "windowsX64Assets": [asset["name"] for asset in windows if asset["architecture"] == "x64"],
+        "sourceAssets": [asset["name"] for asset in assets if asset["kind"] == "source"],
+        "checksumAssets": [asset["name"] for asset in assets if asset["kind"] == "checksum"],
+        "unknownAssets": [asset["name"] for asset in assets if asset["kind"] == "unknown"],
+    }
+
+
+def release_summary(
+    releases: list[dict[str, Any]],
+    *,
+    repository: str | None = None,
+    collection_status: str = "provided",
+    release_limit: int | None = None,
+) -> dict[str, Any]:
+    published = [release for release in releases if not release.get("draft")]
+    stable = [release for release in published if not release.get("prerelease")]
+    prereleases = [release for release in published if release.get("prerelease")]
+    selected = (stable or prereleases or [None])[0]
+    result = summarize_release(selected)
+    evidence = []
+    for release in published:
+        summary = summarize_release(release)
+        if summary["windowsArm64Assets"]:
+            evidence.append(
                 {
-                    "name": asset.get("name"),
-                    "size": asset.get("size"),
-                    "downloads": asset.get("download_count"),
-                    "url": asset.get("browser_download_url"),
+                    "repository": repository,
+                    "tag": summary["latest"]["tag"],
+                    "channel": summary["latest"]["channel"],
+                    "url": summary["latest"]["url"],
+                    "assets": summary["windowsArm64Assets"],
                 }
-                for asset in assets
-            ],
-        },
-        "totalAssetDownloads": sum(int(asset.get("download_count") or 0) for asset in assets),
-        "arm64Assets": [asset.get("name") for asset in assets if arm_pattern.search(str(asset.get("name")))],
-        "x64Assets": [asset.get("name") for asset in assets if x64_pattern.search(str(asset.get("name")))],
-        "windowsAssets": [
-            asset.get("name")
-            for asset in assets
-            if windows_pattern.search(str(asset.get("name")))
-            and not source_pattern.search(str(asset.get("name")))
-        ],
+            )
+    result.update(
+        {
+            "channels": {
+                "stable": summarize_release(stable[0]) if stable else None,
+                "prerelease": summarize_release(prereleases[0]) if prereleases else None,
+            },
+            "observedWindowsArm64Releases": evidence,
+            "coverage": {
+                "repository": repository,
+                "scope": "provided-releases" if collection_status == "provided" else "github-release-page",
+                "collectionStatus": collection_status,
+                "releaseLimit": release_limit,
+                "returnedReleaseCount": len(releases),
+                "stableReleaseCount": len(stable),
+                "prereleaseCount": len(prereleases),
+                "draftsExcluded": len(releases) - len(published),
+                "historyComplete": False,
+                "selection": "first-stable-else-first-prerelease-in-response-order",
+            },
+        }
+    )
+    return result
+
+
+def parse_release_repository(value: str) -> str:
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]{1,100}", value):
+        raise argparse.ArgumentTypeError("--release-repo must be a GitHub owner/repo slug")
+    if value.split("/")[1] in {".", ".."}:
+        raise argparse.ArgumentTypeError("--release-repo requires a repository name")
+    return value
+
+
+def collect_releases(
+    repository: str,
+    token: str | None,
+    warnings: list[str],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    releases = safe_github_get(
+        f"/repos/{repository}/releases?per_page=10", token, warnings, None
+    )
+    return releases or [], {
+        "collection_status": "failed" if releases is None else "collected",
+        "release_limit": 10,
     }
 
 
@@ -368,11 +474,32 @@ def build_assessment(
     source_mode: str,
     warnings: list[str],
     delivery_window_days: int | None = None,
+    *,
+    related_releases: dict[str, list[dict[str, Any]]] | None = None,
+    release_coverage: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     combined_text = "\n".join(contents.values()).lower()
     combined_paths = "\n".join(paths).lower()
     searchable = f"{combined_paths}\n{combined_text}"
-    release = release_summary(releases)
+    repository_name = metadata.get("full_name")
+    coverage = release_coverage or {}
+    release = release_summary(
+        releases, repository=repository_name, **coverage.get(repository_name, {})
+    )
+    release["relatedRepositories"] = [
+        release_summary(items, repository=name, **coverage.get(name, {}))
+        for name, items in (related_releases or {}).items()
+    ]
+    release["unsearchedChannels"] = [
+        "Release history beyond the supplied responses",
+        "Related repositories not explicitly supplied",
+        "CI artifacts, external download sites, and package registries",
+    ]
+    arm_release_evidence = [
+        evidence
+        for summary in [release, *release["relatedRepositories"]]
+        for evidence in summary["observedWindowsArm64Releases"]
+    ]
     build_systems = detect_build_systems(paths)
     packaging = detect_packaging(paths, combined_text)
     dependencies = extract_dependencies(contents)
@@ -393,7 +520,18 @@ def build_assessment(
     )
     tests_present = detect_tests(paths)
     packaging_names = {item["name"] for item in packaging}
-    arm_gap = bool(release["windowsAssets"] and not release["arm64Assets"])
+    known_non_arm_windows = any(
+        asset["kind"] == "binary"
+        and asset["platform"] == "windows"
+        and asset["architecture"] in {"x64", "x86"}
+        for asset in (release["latest"] or {}).get("assets", [])
+    )
+    arm_gap = known_non_arm_windows and not release["windowsArm64Assets"]
+    gap_status = (
+        "windows-arm64-observed" if release["windowsArm64Assets"]
+        else "windows-arm64-not-observed" if arm_gap
+        else "unknown"
+    )
 
     risks: list[dict[str, str]] = []
     risk_score = 0
@@ -449,7 +587,11 @@ def build_assessment(
             {
                 "id": "release-gap",
                 "severity": "medium",
-                "evidence": "Latest stable release has x64 assets and no ARM64-labeled asset.",
+                "evidence": (
+                    f"Selected {release['latest']['channel']} release {release['latest']['tag']} "
+                    f"in {repository_name} has Windows x86/x64 binary labels but no Windows ARM64 binary label. "
+                    "This is a channel-local observation, not proof that the project is unported."
+                ),
             }
         )
     if not tests_present:
@@ -477,6 +619,16 @@ def build_assessment(
         recommendation = "Viable native ARM64 candidate with explicit subsystem, dependency, installer, or plugin fallbacks."
     else:
         recommendation = "High-risk candidate; complete architecture proof and dependency replacement planning before a full port."
+    if arm_release_evidence:
+        recommendation = (
+            "Windows ARM64-labeled binaries were observed in the inspected releases. "
+            "Verify their native architecture and remaining distribution gaps before proposing a new port."
+        )
+    else:
+        recommendation = (
+            "Windows ARM64 release availability is unconfirmed; inspect other distribution channels "
+            "before treating this project as unported. " + recommendation
+        )
     if delivery_window_days is not None:
         recommendation = f"{recommendation} {delivery_window['rationale']}"
 
@@ -502,10 +654,13 @@ def build_assessment(
         },
         "release": release,
         "architecture": {
-            "latestReleaseHasArm64Asset": bool(release["arm64Assets"]),
-            "latestReleaseHasX64Asset": bool(release["x64Assets"]),
+            "latestReleaseHasArm64Asset": bool(release["windowsArm64Assets"]),
+            "latestReleaseHasX64Asset": bool(release["windowsX64Assets"]),
             "latestReleaseHasWindowsAsset": bool(release["windowsAssets"]),
             "releaseAssetGap": arm_gap,
+            "releaseAssetGapStatus": gap_status,
+            "windowsArm64Availability": "observed" if arm_release_evidence else "unconfirmed",
+            "windowsArm64Evidence": arm_release_evidence,
             "x64ReferenceCount": x64_references,
             "arm64ReferenceCount": arm64_references,
             "committedBinaryCount": len(binary_paths),
@@ -554,7 +709,8 @@ def write_markdown(report: dict[str, Any], path: pathlib.Path) -> None:
         f"- Source mode: {report['sourceMode']}",
         f"- Default branch: `{repository['defaultBranch']}`",
         f"- Stars: {repository['stars']:,}",
-        f"- Latest stable release: `{(report['release']['latest'] or {}).get('tag')}`",
+        f"- Selected release: `{(report['release']['latest'] or {}).get('tag')}` "
+        f"({(report['release']['latest'] or {}).get('channel', 'none observed')})",
         "",
         "## Decision",
         "",
@@ -569,29 +725,68 @@ def write_markdown(report: dict[str, Any], path: pathlib.Path) -> None:
         "## Effort and Delivery Window",
         "",
         f"- Estimated effort: {report['effortEstimate']['minimumDays']}-{report['effortEstimate']['maximumDays']} days ({report['effortEstimate']['band']})",
+        "- Effort bands are heuristic planning ranges, not delivery commitments.",
         f"- Delivery window: {report['deliveryWindow']['days'] if report['deliveryWindow']['days'] is not None else 'not supplied'}",
         f"- Window fit: {report['deliveryWindow']['fit']}",
         f"- Rationale: {report['deliveryWindow']['rationale']}",
         "",
         "## Architecture Gap",
         "",
-        f"- Latest release has x64 asset: {report['architecture']['latestReleaseHasX64Asset']}",
-        f"- Latest release has Windows binary asset: {report['architecture']['latestReleaseHasWindowsAsset']}",
-        f"- Latest release has ARM64 asset: {report['architecture']['latestReleaseHasArm64Asset']}",
+        f"- Selected release has Windows x64 binary label: {report['architecture']['latestReleaseHasX64Asset']}",
+        f"- Selected release has Windows binary label: {report['architecture']['latestReleaseHasWindowsAsset']}",
+        f"- Selected release has Windows ARM64 binary label: {report['architecture']['latestReleaseHasArm64Asset']}",
+        f"- Selected-release gap status: {report['architecture']['releaseAssetGapStatus']}",
+        f"- Windows ARM64 availability across inspected releases: {report['architecture']['windowsArm64Availability']}",
         f"- Source x64 references: {report['architecture']['x64ReferenceCount']}",
         f"- Source Arm references: {report['architecture']['arm64ReferenceCount']}",
         f"- Committed native binary candidates: {report['architecture']['committedBinaryCount']}",
         "",
-        "## Build and Packaging",
+        "## Release Coverage",
         "",
-        "- Build systems: " + ", ".join(item["name"] for item in report["buildSystems"]),
-        "- Packaging: " + ", ".join(item["name"] for item in report["packaging"]),
-        f"- Plugin surface: {report['pluginSurfaceDetected']}",
-        f"- Tests detected: {report['testsDetected']}",
-        "",
-        "## Risks",
+        "Asset classifications use filenames only; no binary architecture or functionality was verified.",
+        "A missing Windows ARM64 label in one channel does not establish that a project is unported.",
         "",
     ]
+    for summary in [report["release"], *report["release"]["relatedRepositories"]]:
+        coverage = summary["coverage"]
+        lines.append(
+            f"- `{coverage['repository']}`: {coverage['collectionStatus']}; "
+            f"{coverage['returnedReleaseCount']} release records inspected "
+            f"({coverage['stableReleaseCount']} stable, {coverage['prereleaseCount']} prerelease, "
+            f"{coverage['draftsExcluded']} drafts excluded); "
+            f"response limit: {coverage['releaseLimit'] or 'caller supplied'}; full history not established."
+        )
+        for channel, channel_summary in summary["channels"].items():
+            if channel_summary is None:
+                lines.append(f"  - {channel}: none observed in the supplied response.")
+                continue
+            latest = channel_summary["latest"]
+            lines.append(
+                f"  - {channel}: `{latest['tag']}`, published {latest['publishedAt']}, "
+                f"{latest['url']}; Windows ARM64 labels: "
+                f"{', '.join(channel_summary['windowsArm64Assets']) or 'none observed'}; "
+                f"unclassified assets: {len(channel_summary['unknownAssets'])}."
+            )
+    for evidence in report["architecture"]["windowsArm64Evidence"]:
+        lines.append(
+            f"- Windows ARM64 evidence: `{evidence['repository']}` `{evidence['tag']}` "
+            f"({evidence['channel']}): {', '.join(evidence['assets'])}; {evidence['url']}."
+        )
+    lines.extend(
+        [
+            "- Not searched: " + "; ".join(report["release"]["unsearchedChannels"]) + ".",
+            "",
+            "## Build and Packaging",
+            "",
+            "- Build systems: " + ", ".join(item["name"] for item in report["buildSystems"]),
+            "- Packaging: " + ", ".join(item["name"] for item in report["packaging"]),
+            f"- Plugin surface: {report['pluginSurfaceDetected']}",
+            f"- Tests detected: {report['testsDetected']}",
+            "",
+            "## Risks",
+            "",
+        ]
+    )
     for risk in report["risks"]:
         lines.append(f"- **{risk['severity'].upper()} {risk['id']}:** {risk['evidence']}")
     lines.extend(
@@ -614,6 +809,13 @@ def write_markdown(report: dict[str, Any], path: pathlib.Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", required=True, help="GitHub owner/repo or repository URL")
+    parser.add_argument(
+        "--release-repo",
+        action="append",
+        default=[],
+        type=parse_release_repository,
+        help="Explicit related GitHub owner/repo to inspect for releases (repeatable; no link crawling).",
+    )
     parser.add_argument("--local-path", help="Optional local clone for complete source scanning")
     parser.add_argument(
         "--allow-dirty",
@@ -645,12 +847,20 @@ def main() -> int:
         {},
     )
     metadata["_analyzed_commit"] = commit.get("sha")
-    releases = safe_github_get(
-        f"/repos/{owner}/{repository}/releases?per_page=10",
-        token,
-        warnings,
-        [],
-    )
+    if not args.local_path and not re.fullmatch(r"[0-9a-f]{40}", str(metadata["_analyzed_commit"] or "")):
+        raise ValueError("Remote source assessment requires a resolved immutable commit.")
+    primary_repository = f"{owner}/{repository}"
+    releases, primary_coverage = collect_releases(primary_repository, token, warnings)
+    release_coverage = {metadata.get("full_name", primary_repository): primary_coverage}
+    related_releases: dict[str, list[dict[str, Any]]] = {}
+    seen_repositories = {primary_repository.lower()}
+    for release_repository in args.release_repo:
+        if release_repository.lower() in seen_repositories:
+            continue
+        seen_repositories.add(release_repository.lower())
+        related_releases[release_repository], release_coverage[release_repository] = collect_releases(
+            release_repository, token, warnings
+        )
     issue_query = urllib.parse.urlencode(
         {"q": f'repo:{owner}/{repository} is:issue (arm64 OR aarch64 OR "windows on arm" OR win-arm64)'}
     )
@@ -712,15 +922,17 @@ def main() -> int:
             )
         source_mode = "local"
     else:
-        encoded_branch = urllib.parse.quote(branch, safe="")
+        source_commit = metadata["_analyzed_commit"]
         tree_response = github_get(
-            f"/repos/{owner}/{repository}/git/trees/{encoded_branch}?recursive=1",
+            f"/repos/{owner}/{repository}/git/trees/{source_commit}?recursive=1",
             token,
         )
         tree = list(tree_response.get("tree") or [])
+        if tree_response.get("truncated"):
+            warnings.append("GitHub truncated the source tree response; use a pinned local clone for complete source coverage.")
         paths = sorted(str(entry.get("path")) for entry in tree if entry.get("type") == "blob")
         selected = select_remote_text_paths(tree)
-        contents = fetch_remote_contents(owner, repository, branch, selected, warnings)
+        contents = fetch_remote_contents(owner, repository, source_commit, selected, warnings)
         source_mode = "github"
 
     report = build_assessment(
@@ -733,6 +945,8 @@ def main() -> int:
         source_mode,
         warnings,
         args.delivery_window_days,
+        related_releases=related_releases,
+        release_coverage=release_coverage,
     )
     output = pathlib.Path(args.output).resolve()
     output.mkdir(parents=True, exist_ok=True)

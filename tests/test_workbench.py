@@ -104,6 +104,27 @@ class WorkbenchTests(unittest.TestCase):
         with self.assertRaisesRegex(core.WorkbenchError, "Scout evidence changed"):
             core.approve(self.store, self.state["id"], self.state["planHash"])
 
+    def test_scout_integration_binds_commit_and_explicit_release_channels(self):
+        report = {
+            "repository": {"fullName": "example/desktop", "analyzedCommit": "a" * 40, "workingTreeDirty": False},
+            "architecture": {"windowsArm64Availability": "observed", "windowsArm64Evidence": [{"repository": "example/dev"}],
+                             "releaseAssetGapStatus": "windows-arm64-not-observed"},
+            "recommendation": "Inspect the observed prerelease before proposing a new port.",
+        }
+        core.write_json(self.run / "assessment" / "assessment.json", report)
+        completed = subprocess.CompletedProcess([], 0, stdout="collected", stderr="")
+        with patch.object(subprocess, "run", return_value=completed) as run:
+            core.collect_scout(self.store, self.state, self.source, "a" * 40, ["https://github.com/example/dev.git"])
+        self.assertEqual(1, run.call_count)
+        self.assertEqual(["--release-repo", "example/dev"], run.call_args.args[0][-2:])
+        self.assertEqual("observed", self.state["scout"]["windowsArm64Availability"])
+        self.assertEqual(1, len(self.state["scout"]["windowsArm64Evidence"]))
+        self.assertEqual("example/dev", self.state["scout"]["windowsArm64Evidence"][0]["repository"])
+        report["repository"]["analyzedCommit"] = "b" * 40
+        core.write_json(self.run / "assessment" / "assessment.json", report)
+        with patch.object(subprocess, "run", return_value=completed), self.assertRaisesRegex(core.WorkbenchError, "exact clean source"):
+            core.collect_scout(self.store, self.state, self.source, "a" * 40)
+
     def test_operation_lock_is_released_and_not_a_stale_file_gate(self):
         with self.store.lock(self.state["id"]):
             with self.assertRaises(core.WorkbenchError):
