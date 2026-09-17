@@ -295,6 +295,29 @@ class WorkbenchTests(unittest.TestCase):
         self.assertEqual(2, calls.call_count)
         self.assertEqual(1, sum("--method" in call.args[1] for call in calls.call_args_list))
 
+    def test_dispatch_waits_for_metadata_without_weakening_commit_identity(self):
+        invocation = "a" * 12 + "-" + "b" * 8
+        initial = {"id": 17, "head_sha": "b" * 40, "display_title": "Repo to Arm isolated build"}
+        ready = {**initial, "display_title": f"Repo to Arm {invocation}"}
+        with patch.object(github_runner, "gh", side_effect=[initial, ready]) as api, \
+                patch.object(github_runner.time, "sleep") as sleep:
+            self.assertEqual(ready, github_runner.verified_run_metadata({}, self.plan["runner"], invocation, 17))
+        self.assertEqual(2, api.call_count)
+        sleep.assert_called_once_with(1)
+        with patch.object(github_runner, "gh", return_value={**ready, "head_sha": "c" * 40}), \
+                self.assertRaisesRegex(core.WorkbenchError, "unapproved runner commit"):
+            github_runner.verified_run_metadata({}, self.plan["runner"], invocation, 17)
+
+    def test_dispatch_metadata_wait_is_bounded_and_read_only(self):
+        pending = {"id": 17, "head_sha": "b" * 40, "display_title": ""}
+        with patch.object(github_runner, "gh", return_value=pending) as api, \
+                patch.object(github_runner.time, "sleep") as sleep, \
+                self.assertRaisesRegex(core.WorkbenchError, "retained for a read-only resume"):
+            github_runner.verified_run_metadata({}, self.plan["runner"], "a" * 12 + "-" + "b" * 8, 17)
+        self.assertEqual(12, api.call_count)
+        self.assertEqual(11, sleep.call_count)
+        self.assertTrue(all(call.args[1][0] == "api" and "--method" not in call.args[1] for call in api.call_args_list))
+
     def test_completed_run_artifact_failure_resumes_without_a_new_dispatch(self):
         self.state = core.approve(self.store, self.state["id"], self.state["planHash"])
         self.state["githubRun"] = {"id": 17, "repository": "example/toolkit", "operation": "baseline",

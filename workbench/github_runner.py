@@ -75,6 +75,25 @@ def bind_runner(store: Store, state: dict, config: dict) -> dict:
     return state
 
 
+def verified_run_metadata(config: dict, runner: dict, invocation: str, run_id: int) -> dict:
+    expected_title = f"Repo to Arm {invocation}"
+    for attempt in range(12):
+        found = gh(config, ["api", f"repos/{runner['repository']}/actions/runs/{run_id}"])
+        if found.get("id") != run_id:
+            raise WorkbenchError("The returned workflow run ID does not match the dispatch receipt.")
+        commit = found.get("head_sha")
+        title = found.get("display_title") or ""
+        if commit and commit != runner["commit"]:
+            raise WorkbenchError("The dispatched workflow uses an unapproved runner commit.")
+        if commit == runner["commit"] and title == expected_title:
+            return found
+        if re.fullmatch(r"Repo to Arm [0-9a-f]{12}-[0-9a-f]{8}", title) and title != expected_title:
+            raise WorkbenchError("The dispatched workflow belongs to another invocation.")
+        if attempt < 11:
+            time.sleep(1)
+    raise WorkbenchError("Workflow identity has not materialized. The dispatch receipt is retained for a read-only resume.")
+
+
 def dispatch_build(store: Store, state: dict, config: dict, plan: dict, patch: str, operation: str,
                    stage: str, *, retry_dispatch: bool = False) -> tuple[dict, str]:
     runner = plan["runner"]
@@ -83,7 +102,7 @@ def dispatch_build(store: Store, state: dict, config: dict, plan: dict, patch: s
         if intent["planHash"] != digest(plan) or intent["repository"] != runner["repository"] or intent["operation"] != operation:
             raise WorkbenchError("An unconfirmed dispatch belongs to another plan; resolve it before changing execution.")
         if intent.get("runId"):
-            found = gh(config, ["api", f"repos/{runner['repository']}/actions/runs/{intent['runId']}"])
+            found = verified_run_metadata(config, runner, intent["invocation"], intent["runId"])
             return found, intent["invocation"]
         runs = gh(config, ["api", f"repos/{runner['repository']}/actions/workflows/{runner['workflow']}/runs?event=workflow_dispatch&per_page=100"])["workflow_runs"]
         matches = [item for item in runs if item["display_title"] == f"Repo to Arm {intent['invocation']}"
@@ -111,7 +130,7 @@ def dispatch_build(store: Store, state: dict, config: dict, plan: dict, patch: s
         raise WorkbenchError("Dispatch returned no run identity. Its intent is retained; a retry will not silently submit another run.")
     state["pendingDispatch"]["runId"] = dispatched["workflow_run_id"]
     store.save(state)
-    found = gh(config, ["api", f"repos/{runner['repository']}/actions/runs/{dispatched['workflow_run_id']}"])
+    found = verified_run_metadata(config, runner, invocation, dispatched["workflow_run_id"])
     return found, invocation
 
 
