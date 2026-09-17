@@ -22,7 +22,7 @@ from workbench import agent, cli, core, evidence, github_runner, runner
 class WorkbenchTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
-        self.root = pathlib.Path(self.temporary.name)
+        self.root = pathlib.Path(self.temporary.name).resolve()
         self.store = core.Store(self.root / "runs")
         self.state = self.store.create("example/desktop")
         self.run = self.store.path(self.state["id"])
@@ -510,8 +510,10 @@ class WorkbenchTests(unittest.TestCase):
             return real_git(arguments, **kwargs)
 
         def simulate_compiler(arguments, **kwargs):
-            if arguments[0] != str(dotnet):
+            if arguments[0] == "git":
                 return real_run(arguments, **kwargs)
+            self.assertEqual(dotnet.resolve(), pathlib.Path(arguments[0]).resolve(),
+                             "Only Git may execute outside the simulated compiler boundary.")
             working = pathlib.Path(kwargs["cwd"])
             runtime = arguments[arguments.index("--runtime") + 1]
             self.assertEqual(directory / "sources" / runtime, working)
