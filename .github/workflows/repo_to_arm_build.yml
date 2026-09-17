@@ -1,0 +1,65 @@
+name: Repo to Arm isolated build
+run-name: "Repo to Arm ${{ inputs.run_id }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Workbench run identity
+        type: string
+        required: true
+      plan:
+        description: Canonical approved plan JSON
+        type: string
+        required: true
+      approved_plan_hash:
+        description: SHA-256 of the approved canonical plan
+        type: string
+        required: true
+      patch:
+        description: Reviewed text patch; empty for the unchanged baseline
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-11-arm
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+          architecture: arm64
+      - name: Validate the approved input contract
+        id: contract
+        shell: pwsh
+        env:
+          RTA_PLAN_JSON: ${{ inputs.plan }}
+          RTA_APPROVED_PLAN_HASH: ${{ inputs.approved_plan_hash }}
+          RTA_PATCH: ${{ inputs.patch }}
+        run: python -m workbench.runner prepare --directory "$env:RUNNER_TEMP\rta-build"
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        env:
+          DOTNET_INSTALL_DIR: ${{ runner.temp }}\rta-dotnet
+        with:
+          dotnet-version: ${{ steps.contract.outputs.sdk }}
+      - name: Build the pinned source in this disposable VM
+        shell: pwsh
+        env:
+          RTA_DOTNET_PATH: ${{ runner.temp }}\rta-dotnet\dotnet.exe
+        run: python -m workbench.runner execute --directory "$env:RUNNER_TEMP\rta-build"
+      - name: Retain logs and immutable output packages
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: rta-${{ inputs.run_id }}
+          if-no-files-found: error
+          path: ${{ runner.temp }}\rta-build\artifacts
+          retention-days: 7

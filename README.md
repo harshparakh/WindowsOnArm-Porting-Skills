@@ -50,6 +50,10 @@ python -m unittest discover -s .\tests -p "test_*.py"
 
 The repository runs the same package validation on Windows for every push and pull request.
 
+## Repo to Arm workbench preview
+
+The [workbench](workbench/README.md) connects the three skills through a constrained coding agent, hash-bound approvals, disposable Windows builds, and independent package/process evidence. It currently targets SDK-style .NET Windows desktop projects, not arbitrary native or cross-platform repositories. Its setup, trust boundaries, recovery limits, and command-line protocol are documented separately from the three reusable skills.
+
 ## Direct script usage
 
 Repository assessment:
