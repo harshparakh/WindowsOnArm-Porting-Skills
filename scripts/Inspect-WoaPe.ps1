@@ -30,7 +30,7 @@ $expectedMachines = switch ($ExpectedArchitecture) {
     "arm64" { @("Arm64", "Arm64EC") }
 }
 
-$files = @(Get-ChildItem -LiteralPath $root -File -Recurse |
+$files = @(Get-ChildItem -LiteralPath $root -File -Force -Recurse |
     Where-Object { $_.Extension -in @(".exe", ".dll") })
 $results = @()
 $validationErrors = @()

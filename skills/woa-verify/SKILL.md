@@ -18,11 +18,11 @@ Collect evidence before making architecture, compatibility, or performance claim
 
 ## Architecture proof
 
-1. Inspect every shipped EXE and DLL with `scripts\Inspect-WoaPe.ps1`.
+1. Inspect every shipped EXE and DLL, including hidden files, with `scripts\Inspect-WoaPe.ps1`.
 2. Distinguish IL-only AnyCPU assemblies from native and mixed-mode binaries.
 3. Fail ARM64 validation on unexpected x86 or x64 in-process components.
 4. Allow an out-of-process mismatch only through an explicit path allowlist and report it as emulated.
-5. Launch on physical ARM64 hardware and record the main process image plus loaded required native modules.
+5. Launch on physical ARM64 hardware and use `scripts\Inspect-WoaProcess.ps1` to record `IsWow64Process2`, the actual main image, and loaded package-module hashes.
 
 ## UI validation
 
@@ -44,6 +44,14 @@ The configuration file must be generated under the trusted evidence root and val
 - Retain raw JSON, CSV, and per-trial logs.
 - Report median, nearest-rank p95, and raw samples.
 - Use `scripts\Compare-WoaBenchmarks.ps1` for comparisons and charts.
+
+### General desktop scenarios
+
+For applications that are not query launchers, use `scripts\Invoke-WoaScenarioBenchmark.ps1` with a configuration conforming to `schemas\woa-scenarios.schema.json`. It supports bounded UI Automation actions and exact state/text assertions without coordinates or arbitrary setup commands.
+
+Pass trusted, disjoint application/evidence roots, an operator-approved SHA-256 of a complete package manifest, and `-ExpectedArchitecture arm64` or `x64`. The manifest lists every package file with `relativePath` and `sha256`. Each trial rechecks the package, configuration and fixture templates before launch, outside timing. Output directories must be new.
+
+Use `${profileDir}` and `${fixture:<id>}` placeholders for fresh per-trial data under the evidence root. Only the started process tree may be stopped. Keep recording off during measurement. `-Smoke` is explicitly not benchmark confidence; `-ValidationOnly` never starts a process and is not device proof. Inspect retained raw samples and errors before accepting a result.
 
 ## Tracing
 

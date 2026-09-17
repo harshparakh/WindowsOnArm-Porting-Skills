@@ -24,9 +24,26 @@ try {
         throw "Empty PE report did not record the validation error."
     }
 
+    $hidden = Join-Path $testRoot "hidden.dll"
+    [IO.File]::WriteAllText($hidden, "invalid hidden PE fixture")
+    [IO.File]::SetAttributes($hidden, [IO.FileAttributes]::Hidden)
+    try {
+        & $script -RootPath $testRoot -ExpectedArchitecture arm64 -ReportPath $report | Out-Null
+        throw "PE validation ignored a hidden DLL."
+    } catch {
+        if ($_.Exception.Message -notlike "*architecture validation errors*") {
+            throw "Unexpected hidden PE rejection: $($_.Exception.Message)"
+        }
+    }
+    $hiddenData = Get-Content -LiteralPath $report -Raw | ConvertFrom-Json
+    if ($hiddenData.FileCount -ne 1 -or $hiddenData.InvalidCount -ne 1 -or $hiddenData.Files[0].Path -ne "hidden.dll") {
+        throw "Hidden PE files were not included in the complete inventory."
+    }
+
     [pscustomobject]@{
         EmptyDirectory = "rejected"
         InvalidCount = $data.InvalidCount
+        HiddenInvalidDll = "rejected"
     } | ConvertTo-Json
 } finally {
     if (Test-Path -LiteralPath $testRoot) {

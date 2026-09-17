@@ -5,6 +5,7 @@ import json
 import os
 import pathlib
 import subprocess
+import uuid
 from typing import Any, Callable
 
 from .core import TOOLKIT, Store, WorkbenchError, below, git, read_json, source_diff
@@ -210,7 +211,12 @@ async def _invoke_agent(store: Store, state: dict[str, Any], config: dict[str, A
         ) as session:
             store.event(state, purpose, "running", f"Scoped agent session started with {requested}.")
             summary = await send_agent_prompt(session, prompt)
-            (run / f"agent-{purpose}-summary.txt").write_text(summary, encoding="utf-8")
+            summaries = run / "agent-summaries"
+            summaries.mkdir(exist_ok=True)
+            summary_path = summaries / f"{purpose}-{uuid.uuid4().hex[:12]}.txt"
+            summary_path.write_text(summary, encoding="utf-8")
+            state.setdefault("agentSummaries", []).append({"purpose": purpose, "path": str(summary_path), "model": requested})
+            state["artifacts"]["agentSummary"] = str(summary_path)
             return summary
 
 

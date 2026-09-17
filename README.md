@@ -100,6 +100,14 @@ pwsh -File .\scripts\Compare-WoaBenchmarks.ps1 `
   -CandidateLabel "ARM64 native"
 ```
 
+General desktop UI scenarios use `scripts\Invoke-WoaScenarioBenchmark.ps1` and
+`schemas\woa-scenarios.schema.json`. This runner binds execution to an approved
+complete package manifest, creates fresh per-trial profiles/fixtures, and measures
+native UI Automation sequences. It retains exact assertions, raw samples, CPU and
+memory observations, median and p95. Validation-only and smoke runs are explicitly
+distinguished from performance evidence; arbitrary shell setup and recording are
+not supported.
+
 Elevated Windows Performance Recorder capture:
 
 ```powershell

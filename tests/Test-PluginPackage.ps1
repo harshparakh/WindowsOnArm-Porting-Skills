@@ -63,6 +63,7 @@ foreach ($jsonFile in $jsonFiles) {
 & (Join-Path $root "tests\Test-ComparisonValidation.ps1") | Out-Null
 & (Join-Path $root "tests\Test-PeValidation.ps1") | Out-Null
 & (Join-Path $root "tests\Test-ProcessValidation.ps1") | Out-Null
+& (Join-Path $root "tests\Test-ScenarioBenchmarkValidation.ps1") | Out-Null
 
 python -m unittest discover -s (Join-Path $root "tests") -p "test_*.py"
 if ($LASTEXITCODE -ne 0) {
