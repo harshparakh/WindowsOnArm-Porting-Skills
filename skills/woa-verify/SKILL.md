@@ -22,7 +22,7 @@ Collect evidence before making architecture, compatibility, or performance claim
 2. Distinguish IL-only AnyCPU assemblies from native and mixed-mode binaries.
 3. Fail ARM64 validation on unexpected x86 or x64 in-process components.
 4. Allow an out-of-process mismatch only through an explicit path allowlist and report it as emulated.
-5. Launch on physical ARM64 hardware and use `scripts\Inspect-WoaProcess.ps1` to record `IsWow64Process2`, the actual main image, and loaded package-module hashes.
+5. Launch on physical ARM64 hardware and use `scripts\Inspect-WoaProcess.ps1` to record `GetProcessInformation(ProcessMachineTypeInfo)`, the actual main image, and loaded package-module hashes. `IsWow64Process2` is supplemental host/WOW64 evidence, not a substitute for the process machine type: x64 emulation on ARM64 has no WOW64 layer.
 
 ## UI validation
 
@@ -48,6 +48,8 @@ The configuration file must be generated under the trusted evidence root and val
 ### General desktop scenarios
 
 For applications that are not query launchers, use `scripts\Invoke-WoaScenarioBenchmark.ps1` with a configuration conforming to `schemas\woa-scenarios.schema.json`. It supports bounded UI Automation actions and exact state/text assertions without coordinates or arbitrary setup commands.
+
+When a keyboard-accessible control exposes no invoke pattern, use `press-key` with `Enter` or `Space`. The runner focuses the exact owned UI Automation element and posts only those key messages to its verified application window, without starting another automation process inside the measurement.
 
 Pass trusted, disjoint application/evidence roots, an operator-approved SHA-256 of a complete package manifest, and `-ExpectedArchitecture arm64` or `x64`. The manifest lists every package file with `relativePath` and `sha256`. Each trial rechecks the package, configuration and fixture templates before launch, outside timing. Output directories must be new.
 

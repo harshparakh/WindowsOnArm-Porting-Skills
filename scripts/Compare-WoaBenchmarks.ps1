@@ -22,6 +22,16 @@ function Get-MetricLabel {
 
     $labels = @{
         "process-cold-window-ms" = "Process-cold launch"
+        "process-cold-launch-ms" = "Process-cold launch and ready"
+        "initial-folder-analysis-ms" = "Initial folder analysis"
+        "scenario-settings-open-ms" = "Settings navigation"
+        "scenario-home-return-ms" = "Return Home"
+        "scenario-compress-fixture-ms" = "Fixture compression"
+        "scenario-decompress-fixture-ms" = "Fixture decompression"
+        "scenario-settings-open-cpu-ms" = "Settings navigation CPU"
+        "scenario-home-return-cpu-ms" = "Return Home CPU"
+        "scenario-compress-fixture-cpu-ms" = "Fixture compression CPU"
+        "scenario-decompress-fixture-cpu-ms" = "Fixture decompression CPU"
         "warm-activation-ms" = "Warm activation"
         "settings-open-ms" = "Settings open"
         "working-set-bytes" = "Working set"
@@ -73,6 +83,14 @@ function Write-QueryChart {
     )
 
     $queryRows = @($Rows | Where-Object { $_.Metric -like "query-*" })
+    $chartTitle = "Median query latency"
+    if ($queryRows.Count -eq 0) {
+        $queryRows = @($Rows | Where-Object { $_.Metric -like "scenario-*-ms" -and $_.Metric -notlike "*-cpu-ms" })
+        $chartTitle = "Median desktop scenario latency"
+    }
+    if ($queryRows.Count -eq 0) {
+        return
+    }
     $width = 1200
     $left = 220
     $right = 170
@@ -88,7 +106,7 @@ function Write-QueryChart {
     $svg = [Text.StringBuilder]::new()
     [void]$svg.AppendLine("<svg xmlns=`"http://www.w3.org/2000/svg`" width=`"$width`" height=`"$height`" viewBox=`"0 0 $width $height`">")
     [void]$svg.AppendLine("<rect width=`"100%`" height=`"100%`" fill=`"#0f172a`"/>")
-    [void]$svg.AppendLine("<text x=`"40`" y=`"38`" fill=`"#f8fafc`" font-family=`"Segoe UI,Arial`" font-size=`"24`" font-weight=`"600`">Median query latency</text>")
+    [void]$svg.AppendLine("<text x=`"40`" y=`"38`" fill=`"#f8fafc`" font-family=`"Segoe UI,Arial`" font-size=`"24`" font-weight=`"600`">$chartTitle</text>")
     [void]$svg.AppendLine("<rect x=`"$($width - 310)`" y=`"20`" width=`"16`" height=`"16`" fill=`"#94a3b8`"/><text x=`"$($width - 286)`" y=`"34`" fill=`"#cbd5e1`" font-family=`"Segoe UI,Arial`" font-size=`"14`">$(Escape-Xml $BaselineLabel)</text>")
     [void]$svg.AppendLine("<rect x=`"$($width - 155)`" y=`"20`" width=`"16`" height=`"16`" fill=`"#22c55e`"/><text x=`"$($width - 131)`" y=`"34`" fill=`"#cbd5e1`" font-family=`"Segoe UI,Arial`" font-size=`"14`">$(Escape-Xml $CandidateLabel)</text>")
 
@@ -116,6 +134,12 @@ function Write-ReductionChart {
 
     $selectedMetrics = @(
         "process-cold-window-ms",
+        "process-cold-launch-ms",
+        "initial-folder-analysis-ms",
+        "scenario-settings-open-ms",
+        "scenario-home-return-ms",
+        "scenario-compress-fixture-ms",
+        "scenario-decompress-fixture-ms",
         "warm-activation-ms",
         "settings-open-ms",
         "working-set-bytes",

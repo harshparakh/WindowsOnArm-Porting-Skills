@@ -16,6 +16,10 @@ $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
 if (-not $report.passed -or $report.processId -ne $PID -or $report.executable -ne $image) {
     throw "The process inspector did not report the actual test process."
 }
+if ($report.architectureApi -ne "GetProcessInformation(ProcessMachineTypeInfo)" -or
+    $report.processArchitecture -ne $report.imageArchitecture) {
+    throw "Process architecture must use the process-information API and match the executable image."
+}
 $runtime = @($report.modules | Where-Object { $_.name -eq "coreclr.dll" -and $_.packageRelativePath })
 if ($runtime.Count -ne 1) {
     throw "Expected one loaded package runtime module."

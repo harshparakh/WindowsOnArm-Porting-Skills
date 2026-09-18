@@ -225,6 +225,12 @@ try {
     if (Test-ExpectedValue -Actual "5" -Expected 5) {
         throw "Numeric equality accepted a string observation."
     }
+    $keyStep = [pscustomobject]@{type="press-key";key="Enter";selector=[pscustomobject]@{name="Settings";controlType="DataItem"}}
+    Assert-Step -Step $keyStep -Context "keyboard fixture" -FixtureIds @{}
+    $keyStep.key = "Ctrl+R"
+    Assert-Rejected -Name "unbounded-key" -ExpectedMessage "only Enter or Space" -Action {
+        Assert-Step -Step $keyStep -Context "keyboard fixture" -FixtureIds @{}
+    }
 
     foreach ($unsafeRelativePath in @(
             "App.exe:Zone.Identifier",
@@ -410,7 +416,7 @@ try {
         }
 
     [pscustomobject]@{
-        Passed = 20
+        Passed = 21
         ScratchRoot = $testRoot
         ValidationOnly = "passed"
         NoArgumentNoFixture = "passed"

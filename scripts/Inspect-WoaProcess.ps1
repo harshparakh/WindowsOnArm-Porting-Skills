@@ -12,7 +12,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Reflection.Metadata
 
-if (-not ("Woa.ProcessMachine" -as [type])) {
+if (-not ("Woa.ProcessMachineInformation" -as [type])) {
     Add-Type -TypeDefinition @'
 using System;
 using System.ComponentModel;
@@ -22,19 +22,46 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Woa
 {
-    public static class ProcessMachine
+    public static class ProcessMachineInformation
     {
+        // SDK processthreadsapi.h, from Microsoft's win32metadata SDK headers:
+        // https://github.com/microsoft/win32metadata/blob/main/generation/WinSDK/RecompiledIdlHeaders/um/processthreadsapi.h
+        private enum ProcessInformationClass
+        {
+            ProcessMemoryPriority, ProcessMemoryExhaustionInfo, ProcessAppMemoryInfo,
+            ProcessInPrivateInfo, ProcessPowerThrottling, ProcessReservedValue1,
+            ProcessTelemetryCoverageInfo, ProcessProtectionLevelInfo,
+            ProcessLeapSecondInfo, ProcessMachineTypeInfo
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeMachineInformation
+        {
+            public ushort ProcessMachine;
+            public ushort Reserved;
+            public uint MachineAttributes;
+        }
+
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetProcessInformation(
+            SafeProcessHandle process, ProcessInformationClass informationClass,
+            out NativeMachineInformation information, uint informationSize);
+
         // SDK wow64apiset.h: https://learn.microsoft.com/windows/win32/api/wow64apiset/nf-wow64apiset-iswow64process2
         [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsWow64Process2(
             SafeProcessHandle process, out ushort processMachine, out ushort nativeMachine);
 
-        public static ushort[] Query(Process process)
+        public static uint[] Query(Process process)
         {
+            if (!GetProcessInformation(process.SafeHandle, ProcessInformationClass.ProcessMachineTypeInfo,
+                out var information, (uint)Marshal.SizeOf<NativeMachineInformation>()))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
             if (!IsWow64Process2(process.SafeHandle, out var guest, out var native))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
-            return new[] { guest, native };
+            return new uint[] { information.ProcessMachine, guest, native, information.MachineAttributes };
         }
     }
 }
@@ -56,10 +83,10 @@ $process = Get-Process -Id $ProcessId -ErrorAction Stop
 try {
     $startedAt = $process.StartTime.ToUniversalTime().ToString("o")
     $image = [IO.Path]::GetFullPath($process.MainModule.FileName)
-    $machines = [Woa.ProcessMachine]::Query($process)
-    $guest = [System.Reflection.PortableExecutable.Machine]$machines[0]
-    $native = [System.Reflection.PortableExecutable.Machine]$machines[1]
-    $machine = if ($guest -eq [System.Reflection.PortableExecutable.Machine]::Unknown) { $native } else { $guest }
+    $machines = [Woa.ProcessMachineInformation]::Query($process)
+    $machine = [System.Reflection.PortableExecutable.Machine]$machines[0]
+    $guest = [System.Reflection.PortableExecutable.Machine]$machines[1]
+    $native = [System.Reflection.PortableExecutable.Machine]$machines[2]
     $expected = if ($ExpectedArchitecture -eq "arm64") { "Arm64" } else { "Amd64" }
     $errors = @()
     if (-not $image.Equals($expectedPath, [StringComparison]::OrdinalIgnoreCase)) {
@@ -67,6 +94,18 @@ try {
     }
     if ($machine.ToString() -ne $expected) {
         $errors += "Expected $expected process, observed $machine."
+    }
+    $imageStream = [IO.File]::OpenRead($image)
+    $imageReader = $null
+    try {
+        $imageReader = [System.Reflection.PortableExecutable.PEReader]::new($imageStream)
+        $imageMachine = $imageReader.PEHeaders.CoffHeader.Machine.ToString()
+        if ($imageMachine -ne $expected) {
+            $errors += "Expected $expected executable image, observed $imageMachine."
+        }
+    } finally {
+        if ($imageReader) { $imageReader.Dispose() }
+        $imageStream.Dispose()
     }
 
     $modules = @($process.Modules | ForEach-Object {
@@ -100,7 +139,10 @@ try {
         processArchitecture = $machine.ToString()
         guestMachine = $guest.ToString()
         nativeMachine = $native.ToString()
-        architectureApi = "IsWow64Process2"
+        imageArchitecture = $imageMachine
+        machineAttributes = $machines[3]
+        architectureApi = "GetProcessInformation(ProcessMachineTypeInfo)"
+        hostArchitectureApi = "IsWow64Process2"
         requiredPackageModules = $RequiredPackageModule
         modules = $modules
         passed = $errors.Count -eq 0

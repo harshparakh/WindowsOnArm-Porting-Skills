@@ -280,6 +280,7 @@
             "toggle",
             "select",
             "set-value",
+            "press-key",
             "wait-element",
             "assert-element",
             "wait-property",
@@ -299,6 +300,9 @@
         "value": {
           "type": "string",
           "maxLength": 4096
+        },
+        "key": {
+          "enum": ["Enter", "Space"]
         },
         "property": {
           "enum": [
@@ -337,6 +341,7 @@
                   "toggle",
                   "select",
                   "set-value",
+                  "press-key",
                   "wait-element",
                   "assert-element",
                   "wait-property",
@@ -353,6 +358,13 @@
               "selector"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {"type": {"const": "press-key"}},
+            "required": ["type"]
+          },
+          "then": {"required": ["key"]}
         },
         {
           "if": {

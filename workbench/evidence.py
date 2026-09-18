@@ -210,8 +210,10 @@ def collect_process_proof(store: Store, state: dict, process_id: int, config: di
     proof = read_json(report)
     if proof.get("passed") is not True or proof.get("osArchitecture") != "Arm64" or proof.get("processArchitecture") != "Arm64":
         raise WorkbenchError("The live process probe did not establish ARM64 execution on ARM64 Windows.")
-    if proof.get("processId") != process_id or proof.get("architectureApi") != "IsWow64Process2":
+    if proof.get("processId") != process_id or proof.get("architectureApi") != "GetProcessInformation(ProcessMachineTypeInfo)":
         raise WorkbenchError("Live process proof identity is invalid.")
+    if proof.get("imageArchitecture") != "Arm64":
+        raise WorkbenchError("The live executable image does not prove a full ARM64 application.")
     executable = package / (state["assemblyName"] + ".exe")
     if pathlib.Path(proof["executable"]).resolve() != executable or proof["executableSha256"] != file_hash(executable):
         raise WorkbenchError("The live executable is not the verified package entry point.")
@@ -245,7 +247,7 @@ def record_device_evidence(store: Store, state: dict, evidence_path: pathlib.Pat
     if evidence.get("processStartedAt") != proof["result"]["processStartedAt"]:
         raise WorkbenchError("The scenario report belongs to another process instance.")
     require_verification(store, state)
-    destination = store.path(state["id"]) / "device-evidence.json"
+    destination = store.path(state["id"]) / "device-evidence" / f"{uuid.uuid4().hex[:12]}.json"
     write_json(destination, {**evidence, "liveProcessProof": proof,
                              "scenarioSource": "operator-supplied scenario assertions; live architecture independently inspected"})
     state["deviceEvidence"] = {"path": str(destination), "sha256": file_hash(destination),

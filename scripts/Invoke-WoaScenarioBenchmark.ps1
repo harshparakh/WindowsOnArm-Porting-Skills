@@ -41,6 +41,49 @@ $ErrorActionPreference = "Stop"
 
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+Add-Type -AssemblyName System.Windows.Forms
+
+function Initialize-WindowKeySender {
+    if ("Woa.WindowKeySender" -as [type]) { return }
+    Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+
+namespace Woa
+{
+    public static class WindowKeySender
+    {
+        // SDK WinUser.h:
+        // https://github.com/microsoft/win32metadata/blob/main/generation/WinSDK/RecompiledIdlHeaders/um/WinUser.h
+        // WM_KEYDOWN/WM_KEYUP payload contracts:
+        // https://learn.microsoft.com/windows/win32/inputdev/wm-keydown
+        // https://learn.microsoft.com/windows/win32/inputdev/wm-keyup
+        private const uint WmKeyDown = 0x0100;
+        private const uint WmKeyUp = 0x0101;
+
+        [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool PostMessageW(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
+
+        // WinUser.h: https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-getwindowthreadprocessid
+        [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+        private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+
+        public static void Send(IntPtr window, int expectedProcessId, int virtualKey)
+        {
+            if (GetWindowThreadProcessId(window, out var actualProcessId) == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            if (actualProcessId != expectedProcessId)
+                throw new InvalidOperationException("Keyboard target is not the owned application window.");
+            if (!PostMessageW(window, WmKeyDown, new IntPtr(virtualKey), new IntPtr(1)) ||
+                !PostMessageW(window, WmKeyUp, new IntPtr(virtualKey), new IntPtr(unchecked((int)0xC0000001))))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+    }
+}
+'@
+}
 
 function Get-FullPath {
     param([Parameter(Mandatory)][string]$Path)
@@ -525,6 +568,7 @@ function Assert-Step {
         "toggle",
         "select",
         "set-value",
+        "press-key",
         "wait-element",
         "assert-element",
         "wait-property",
@@ -542,7 +586,7 @@ function Assert-Step {
     )
     Assert-ObjectProperties `
         -InputObject $Step `
-        -Allowed @("id", "type", "selector", "timeoutMilliseconds", "value", "property", "expected", "expectedText") `
+        -Allowed @("id", "type", "selector", "timeoutMilliseconds", "value", "property", "expected", "expectedText", "key") `
         -Required @("type") `
         -Context $Context
     $type = [string]$Step.type
@@ -556,10 +600,16 @@ function Assert-Step {
     if ($timeout -and ([int]$timeout -lt 10 -or [int]$timeout -gt 300000)) {
         throw "$Context timeoutMilliseconds is outside the supported range."
     }
-    if ($type -in @("invoke", "toggle", "select", "set-value", "wait-element", "assert-element", "wait-property", "assert-property")) {
+    if ($type -in @("invoke", "toggle", "select", "set-value", "press-key", "wait-element", "assert-element", "wait-property", "assert-property")) {
         $selector = Get-OptionalPropertyValue -InputObject $Step -Name "selector"
         if (-not $selector) {
             throw "$Context requires selector."
+        }
+        if ($type -eq "press-key") {
+            $key = Get-OptionalPropertyValue -InputObject $Step -Name "key"
+            if ($key -cnotin @("Enter", "Space")) {
+                throw "$Context press-key supports only Enter or Space on an owned focused element."
+            }
         }
         Assert-Selector -Selector $selector -Context "$Context selector"
     }
@@ -1110,6 +1160,16 @@ function Invoke-ScenarioStep {
             ([System.Windows.Automation.ValuePattern]$pattern).SetValue($value)
             return
         }
+        "press-key" {
+            $element.SetFocus()
+            $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+            if (-not $focused -or -not [System.Windows.Automation.Automation]::Compare($element, $focused)) {
+                throw "The requested owned element did not receive keyboard focus."
+            }
+            $key = [Enum]::Parse([System.Windows.Forms.Keys], [string]$Step.key)
+            [Woa.WindowKeySender]::Send([IntPtr]$Window.Current.NativeWindowHandle, $ProcessId, [int]$key)
+            return
+        }
         "wait-property" {
             $expected = if ($Step.expected -is [string]) {
                 Resolve-PlaceholdersInString -Value ([string]$Step.expected) -Placeholders $Placeholders
@@ -1517,6 +1577,7 @@ if ($ValidationOnly) {
 $trialResults = @()
 $scenarioResults = @()
 $trialErrors = @()
+Initialize-WindowKeySender
 
 for ($trial = 1; $trial -le $Trials; $trial++) {
     $applicationProcess = $null
